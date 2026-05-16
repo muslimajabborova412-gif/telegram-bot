@@ -6,15 +6,15 @@ import threading
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-# ТОКЕНИ БОТИ ХУДРО ДАР БАЙНИ СИТАТАҲО ГУЗОР
-TOKEN = 'ИН_ҶО_ТОКЕНИ_БОТРО_НАВИС'
+# ⚠️ ТОКЕНИ БОТИ ХУДРО АЗ BOTFATHER ДАР БАЙНИ СИТАТАҲО ГУЗОР
+TOKEN = '8996159898:AAEFani_soW7FmDlf2Uvrga0ruJKWfN9r64'
 
-# Ин қисм барои он аст, ки Render хатогӣ надиҳад (веб-сервер)
+# Ин қисм барои он аст, ки Render ботро хомӯш накунад
 def run_dummy_server():
     port = int(os.environ.get("PORT", 10000))
     handler = SimpleHTTPRequestHandler
     with TCPServer(("0.0.0.0", port), handler) as httpd:
-        print(f"Сервер дар порти {port} кор мекунад...")
+        print(f"Веб-сервер дар порти {port} сар шуд...")
         httpd.serve_forever()
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -24,7 +24,7 @@ def main() -> None:
     # Ба кор даровардани веб-сервер дар замина (background)
     threading.Thread(target=run_dummy_server, daemon=True).start()
 
-    # Сохтани бот
+    # Сохтани бот бо китобхонаи аслии python-telegram-bot
     application = Application.builder().token(TOKEN).build()
     application.add_handler(CommandHandler("start", start))
 
