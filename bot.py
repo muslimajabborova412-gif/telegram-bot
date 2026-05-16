@@ -14,7 +14,7 @@ app = Flask(__name__)
 def home():
     return "Bot is running! 🚀"
 
-# БАЗАИ САВОЛҲО (Саволҳо зиёд карда шуданд ва функсияи санҷиш ислоҳ шуд)
+# БАЗАИ САВОЛҲО
 QUIZ_DATA = {
     "A1 (Beginner)": [
         {"q": "I ___ from Tajikistan.", "options": ["am", "is", "are"], "correct": "am", "rule": "Бо ҷонишини 'I' (ман) ҳамеша феъли то-be 'am' истифода мешавад."},
@@ -25,7 +25,7 @@ QUIZ_DATA = {
     ],
     "A2 (Elementary)": [
         {"q": "Yesterday I ___ to the park.", "options": ["go", "went", "gone"], "correct": "went", "rule": "Калимаи 'Yesterday' (дирӯз) нишон медиҳад, ки ҷумла дар замони гузаштаи оддӣ (Past Simple) аст. Феъли нодурусти 'go' дар замони гузашта 'went' мешавад."},
-        {"q": "He is ___ than his brother.", "options": ["tall", "taller", "tallest"], "correct": "taller", "rule": "Барои муқоисаи ду шахс ё ашё (Comparative degree) ба сифатҳои кӯтоҳ суффикси '-er' илова карда мешавад."},
+        {"q": "He is ___ than his brother.", "options": ["tall", "taller", "tallest"], "correct": "taller", "rule": "Барои муқоисаи два шахс ё ашё (Comparative degree) ба сифатҳои кӯтоҳ суффикси '-er' илова карда мешавад."},
         {"q": "Have you ___ English before?", "options": ["study", "studied", "studying"], "correct": "studied", "rule": "Дар замони Present Perfect пас аз 'have/has' ҳамеша шакли сеюми феъл (V3) ё феъли бо суффикси '-ed' истифода мешавад."},
         {"q": "Listen! The baby ___.", "options": ["cries", "is crying", "cried"], "correct": "is crying", "rule": "Калимаи 'Listen!' (Гӯш кун!) нишон медиҳад, ки амал дар ҳамин сонияи гап задан рафта истодааст (Present Continuous: am/is/are + V-ing)."},
         {"q": "There ___ some milk in the fridge.", "options": ["is", "are", "any"], "correct": "is", "rule": "Ибораи 'milk' (шир) исми ҳисобнашаванда аст, бинобар ин бо он феъли шакли танҳо (is) истифода мешавад."}
@@ -49,7 +49,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "👋 Welcome to the English Quiz Bot!\n\n"
         "👤 **Developer:** Abdurahim Sheraliev\n"
         "📚 This bot will help you test your English language levels.\n"
-        "📝 The quiz consists of questions. At the end, your mistakes will be explained in Tajik.\n\n"
+        "📝 At the end, your mistakes will be explained in Tajik.\n\n"
         "💡 Please, choose your level:"
     )
     
@@ -73,14 +73,14 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         all_q = QUIZ_DATA[level].copy()
         random.shuffle(all_q)
         
-        # Дигар хатогӣ намешавад: агар саволҳо аз 10 кам бошанд, ҳамаашро мегирад
         USER_DATA[user_id]["questions"] = all_q
         USER_DATA[user_id]["current_q"] = 0
         USER_DATA[user_id]["score"] = 0
         USER_DATA[user_id]["wrong_answers"] = []
         
-        await query.message.reply_text(f"🏁 You have chosen **{level}**. The quiz has started!")
-        await send_question(query, user_id)
+        # 100% паёми нав мефиристем, то бот дармонда нашавад
+        await context.bot.send_message(chat_id=user_id, text=f"🏁 You have chosen **{level}**. The quiz has started!")
+        await send_question(context, user_id)
 
     elif data.startswith("ans:"):
         _, ans_idx, correct_str = data.split(":")
@@ -101,14 +101,14 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             })
             
         USER_DATA[user_id]["current_q"] += 1
-        await send_question(query, user_id)
+        await send_question(context, user_id)
 
-async def send_question(query, user_id):
+async def send_question(context, user_id):
     current_q = USER_DATA[user_id]["current_q"]
     q_list = USER_DATA[user_id]["questions"]
 
     if current_q >= len(q_list):
-        await show_results(query, user_id)
+        await show_results(context, user_id)
         return
 
     question = q_list[current_q]
@@ -120,9 +120,10 @@ async def send_question(query, user_id):
         keyboard.append([InlineKeyboardButton(opt, callback_data=f"ans:{idx}:{is_correct}")])
         
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.message.reply_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+    # Истифодаи бевоситаи контекст барои кафолати расонидани паём
+    await context.bot.send_message(chat_id=user_id, text=text, reply_markup=reply_markup, parse_mode="Markdown")
 
-async def show_results(query, user_id):
+async def show_results(context, user_id):
     score = USER_DATA[user_id]["score"]
     wrongs = USER_DATA[user_id]["wrong_answers"]
     total = len(USER_DATA[user_id]["questions"])
@@ -144,7 +145,7 @@ async def show_results(query, user_id):
         result_text += "🎉 Awesome! You answered all questions correctly!"
 
     result_text += "\n🔄 Press /start to try again."
-    await query.message.reply_text(result_text, parse_mode="Markdown")
+    await context.bot.send_message(chat_id=user_id, text=result_text, parse_mode="Markdown")
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
