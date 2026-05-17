@@ -6,7 +6,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # ⚠️ ТОКЕНИ ХУДРО ДАР БАЙНИ СИТАТАҲО БОДИҚҚАТ ГУЗОРЕД
-TOKEN = '8996159898:AAEFani_soW7FmDlf2Uvrga0ruJKWfN9r64'
+TOKEN = '8996159898:AAHYcbpdDQCkBPi8LGHukj6ZVP0LIKw11Vc'
 
 app = Flask(__name__)
 
