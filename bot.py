@@ -45,7 +45,7 @@ QUIZ_DATA = {
         {"q": "You ___ better lock the door.", "options": ["had", "would", "should"], "correct": "had", "rule": "The idiom 'had better' means 'should' and is followed by a base verb."},
         {"q": "The man ___ stole the car was caught.", "options": ["who", "which", "whose"], "correct": "who", "rule": "We use the relative pronoun 'who' for people."},
         {"q": "I am used to ___ early in the morning.", "options": ["waking up", "wake up", "woke up"], "correct": "waking up", "rule": "The structure 'be used to' requires a gerund (-ing) because 'to' is a preposition here."},
-        {"q": "Although it was cold, ___ she went out.", "options": ["❌ (No word)", "but", "however"], "correct": "❌ (No word)", "rule": "We do not use 'but' in the main clause if the sentence starts with 'Although'."}
+        {"q": "Although it was cold, ___ she went out.", "options": ["No word", "but", "however"], "correct": "No word", "rule": "We do not use 'but' in the main clause if the sentence starts with 'Although'."}
     ],
     "B2 (Upper-Intermediate)": [
         {"q": "She avoids ___ sugar to lose weight.", "options": ["eating", "to eat", "eat"], "correct": "eating", "rule": "The verb 'avoid' is always followed by a gerund (-ing)."},
@@ -65,7 +65,7 @@ QUIZ_DATA = {
         {"q": "The CEO suggested ___ the meeting until next week.", "options": ["postponing", "to postpone", "postpone"], "correct": "postponing", "rule": "The verb 'suggest' takes a gerund (-ing) when there is no direct object pronoun."},
         {"q": "She was completely taken ___ by his smooth words.", "options": ["in", "off", "away"], "correct": "in", "rule": "The phrasal verb 'take in' means to deceive or trick someone."},
         {"q": "It is crucial that he ___ here on time.", "options": ["be", "is", "was"], "correct": "be", "rule": "Subjunctive Mood: after expressions of urgency/importance, the base form (be) is used."},
-        {"q": "___ had I known the truth, I wouldn't have gone.", "options": ["❌ (No word)", "If", "Should"], "correct": "❌ (No word)", "rule": "In inverted conditional sentences, 'had' replaces 'if', so 'if' is omitted."},
+        {"q": "___ had I known the truth, I wouldn't have gone.", "options": ["No word", "If", "Should"], "correct": "No word", "rule": "In inverted conditional sentences, 'had' replaces 'if', so 'if' is omitted."},
         {"q": "He is a person ___ integrity is unquestionable.", "options": ["whose", "who", "whom"], "correct": "whose", "rule": "'Whose' is a relative possessive pronoun indicating possession by a person."},
         {"q": "The project was cancelled owing ___ lack of funds.", "options": ["to", "for", "with"], "correct": "to", "rule": "'Owing to' is a fixed prepositional phrase meaning 'because of'."},
         {"q": "Try ___ he might, he couldn't open the door.", "options": ["as", "though", "however"], "correct": "as", "rule": "Concessive structure: Verb + as + subject + modal (meaning 'Even though he tried...')."},
@@ -216,3 +216,7 @@ def show_results(user_id):
 
     result_text += "\n🔄 Type /start to take the quiz again."
     bot.send_message(user_id, result_text, parse_mode="Markdown")
+
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
