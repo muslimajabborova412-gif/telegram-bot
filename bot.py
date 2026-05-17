@@ -10,7 +10,7 @@ WEBHOOK_URL = 'https://telegram-bot-quiz-3cqc.onrender.com'
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
-# COMPLETE ENGLISH QUIZ DATABASE (A1 - C1)
+# COMPLETE ENGLISH QUIZ DATABASE (EXACTLY 10 QUESTIONS PER LEVEL FOR STABILITY)
 QUIZ_DATA = {
     "A1 (Beginner)": [
         {"q": "I ___ from Tajikistan.", "options": ["am", "is", "are"], "correct": "am", "rule": "With the pronoun 'I', we always use the verb to-be 'am'."},
@@ -128,13 +128,11 @@ def handle_callback(call):
         level = data.split(":")[1]
         
         all_q = [item.copy() for item in QUIZ_DATA[level]]
-        random.shuffle(all_q) # Hidden randomized generation
-        
-        total_questions = min(10, len(all_q))
+        random.shuffle(all_q) # Safe internal randomization
         
         USER_DATA[user_id] = {
             "level": level,
-            "questions": all_q[:total_questions],
+            "questions": all_q[:10],
             "current_q": 0,
             "score": 0,
             "wrong_answers": []
@@ -154,7 +152,7 @@ def handle_callback(call):
                 current_question = q_list[current_q_idx]
                 chosen_option = current_question["options"][int(ans_idx)]
                 
-                # Update text to display selected answer, buttons are removed but message STAYS in chat history
+                # Update text, old buttons are removed safely
                 updated_text = f"❓ **Question {current_q_idx + 1}/{len(q_list)}:**\n`{current_question['q']}`\n\n📥 *Your choice:* {chosen_option}"
                 bot.edit_message_text(updated_text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, parse_mode="Markdown")
                 
@@ -205,7 +203,7 @@ def show_results(user_id):
     )
     
     if wrongs:
-        result_text += "🛠 **Mistakes Analysis & Explanations (English):**\n\n"
+        result_text += "🛠 **Mistakes Analysis & Explanations:**\n\n"
         for idx, w in enumerate(wrongs):
             result_text += (
                 f"❌ *Mistake {idx+1}:*\n"
