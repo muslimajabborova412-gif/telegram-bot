@@ -2,23 +2,24 @@ import os
 import threading
 import random
 from flask import Flask
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
+import telebot
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 # ⚠️ ТОКЕНИ НАВИ ХУДРО ДАР БАЙНИ СИТАТАҲО БОДИҚҚАТ ГУЗОРЕД
 TOKEN = '8996159898:AAHYcbpdDQCkBPi8LGHukj6ZVP0LIKw11Vc'
 
+bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return "English Quiz Bot is running! 🚀"
+    return "English Quiz Bot is running perfectly! 🚀"
 
-# БАЗАИ ПУРРАИ САВОЛҲО БЕ ҲЕҶ ГУНА СЕ НУҚТА
+# БАЗАИ САВОЛҲО
 QUIZ_DATA = {
     "A1 (Beginner)": [
         {"q": "I ___ from Tajikistan.", "options": ["am", "is", "are"], "correct": "am", "rule": "Бо ҷонишини 'I' (ман) ҳамеша феъли то-be 'am' истифода мешавад."},
-        {"q": "She ___ a book every day.", "options": ["read", "reads", "reading"], "correct": "reads", "rule": "Дар замони Present Simple барои шахси сеюми танҳо (He, She, It) ба охири феъл суффикси '-s' илова мешавад."},
+        {"q": "She ___ a book every day.", "options": ["read", "reads", "reading"], "correct": "reads", "rule": "Дар замони Present Simple барои шахси сеюми танҳо (He, She, It) ба охири феъл суффикси '-s' ё '-es' илова мешавад."},
         {"q": "Where ___ you live?", "options": ["do", "does", "is"], "correct": "do", "rule": "Барои сохтани ҷумлаи саволӣ дар замони Present Simple бо ҷонишини 'you' феъли ёвари 'do' истифода мешавад."},
         {"q": "They ___ have a car.", "options": ["don't", "doesn't", "not"], "correct": "don't", "rule": "Инкори ҷумла дар замони Present Simple барои шакли ҷамъ (They) бо ёрии 'don't' сохта мешавад."},
         {"q": "He ___ football on Sundays.", "options": ["plays", "play", "playing"], "correct": "plays", "rule": "Дар Present Simple барои He/She/It ба феъл '-s' илова мешавад."}
@@ -53,8 +54,9 @@ QUIZ_DATA = {
 
 USER_DATA = {}
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_id = update.effective_user.id
+@bot.message_handler(commands=['start'])
+def start_quiz(message):
+    user_id = message.from_user.id
     USER_DATA[user_id] = {"score": 0, "current_q": 0, "level": "", "questions": [], "wrong_answers": []}
     
     welcome_text = (
@@ -65,15 +67,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "💡 Please, choose your level:"
     )
     
-    keyboard = [[InlineKeyboardButton(lvl, callback_data=f"set_lvl:{lvl}")] for lvl in QUIZ_DATA.keys()]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text(welcome_text, reply_markup=reply_markup, parse_mode="Markdown")
+    markup = InlineKeyboardMarkup()
+    for lvl in QUIZ_DATA.keys():
+        markup.add(InlineKeyboardButton(lvl, callback_data=f"set_lvl:{lvl}"))
+        
+    bot.send_message(user_id, welcome_text, reply_markup=markup, parse_mode="Markdown")
 
-async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    query = update.callback_query
-    await query.answer()
-    user_id = query.from_user.id
-    data = query.data
+@bot.callback_query_handler(func=lambda call: True)
+def handle_callback(call):
+    user_id = call.from_user.id
+    data = call.data
 
     if user_id not in USER_DATA:
         USER_DATA[user_id] = {"score": 0, "current_q": 0, "level": "", "questions": [], "wrong_answers": []}
@@ -98,8 +101,8 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         USER_DATA[user_id]["score"] = 0
         USER_DATA[user_id]["wrong_answers"] = []
         
-        await query.message.reply_text(f"🏁 You have chosen **{level}**. The quiz has started with 50 questions!")
-        await send_question(query, user_id)
+        bot.send_message(user_id, f"🏁 You have chosen **{level}**. The quiz has started with 50 questions!", parse_mode="Markdown")
+        send_question(user_id)
 
     elif data.startswith("ans:"):
         _, ans_idx, correct_str = data.split(":")
@@ -121,28 +124,27 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                 })
                 
             USER_DATA[user_id]["current_q"] += 1
-            await send_question(query, user_id)
+            send_question(user_id)
 
-async def send_question(query, user_id: int):
+def send_question(user_id):
     current_q = USER_DATA[user_id]["current_q"]
     q_list = USER_DATA[user_id]["questions"]
 
     if current_q >= len(q_list) or current_q >= 50:
-        await show_results(query, user_id)
+        show_results(user_id)
         return
 
     question = q_list[current_q]
     text = f"❓ **Question {current_q + 1}/50:**\n\n{question['q']}"
     
-    keyboard = []
+    markup = InlineKeyboardMarkup()
     for idx, opt in enumerate(question["options"]):
         is_correct = "yes" if opt == question["correct"] else "no"
-        keyboard.append([InlineKeyboardButton(opt, callback_data=f"ans:{idx}:{is_correct}")])
+        markup.add(InlineKeyboardButton(opt, callback_data=f"ans:{idx}:{is_correct}"))
         
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.message.reply_text(text, reply_markup=reply_markup, parse_mode="Markdown")
+    bot.send_message(user_id, text, reply_markup=markup, parse_mode="Markdown")
 
-async def show_results(query, user_id: int):
+def show_results(user_id):
     score = USER_DATA[user_id]["score"]
     wrongs = USER_DATA[user_id]["wrong_answers"]
     
@@ -165,21 +167,14 @@ async def show_results(query, user_id: int):
         result_text += "🎉 Awesome! You answered all 50 questions correctly!"
 
     result_text += "\n🔄 Press /start to try again."
-    await query.message.reply_text(result_text, parse_mode="Markdown")
+    bot.send_message(user_id, result_text, parse_mode="Markdown")
 
 def run_flask():
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
 
-def main() -> None:
-    threading.Thread(target=run_flask, daemon=True).start()
-
-    application = Application.builder().token(TOKEN).build()
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(CallbackQueryHandler(handle_callback))
-
-    print("Bot started successfully...")
-    application.run_polling(drop_pending_updates=True)
-
 if __name__ == '__main__':
-    main()
+    threading.Thread(target=run_flask, daemon=True).start()
+    print("Bot started successfully...")
+    # drop_pending_updates ҳамаи конфликтҳоро нест мекунад
+    bot.infinity_polling(drop_pending_updates=True)
