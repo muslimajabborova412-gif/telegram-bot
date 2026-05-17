@@ -5,8 +5,8 @@ from flask import Flask
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-# ⚠️ ТОКЕНИ НАВИ ХУДРО ДАР БАЙНИ СИТАТАҲО БОДИҚҚАТ ГУЗОРЕД
-TOKEN = '8996159898:AAHYcbpdDQCkBPi8LGHukj6ZVP0LIKw11Vc'
+# ✅ ТОКЕНИ НАВИ ТУ АЛЛАКАЙ ДАР ИН ҶОСТ
+TOKEN = '8996159898:AAH4t65DElUHgVtQrx5Ck0j8LyBVuWqPmwQ'
 
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
@@ -35,20 +35,20 @@ QUIZ_DATA = {
         {"q": "If it rains, we ___ stay at home.", "options": ["will", "would", "shall"], "correct": "will", "rule": "Ин ҷумлаи шартии намуди якум (First Conditional) аст: Шарти ҳозира (Present) + Натиҷаи оянда (Will)."},
         {"q": "The book ___ written by him in 2024.", "options": ["is", "was", "were"], "correct": "was", "rule": "Ин ҷумла дар замони гузаштаи маҷҳул (Passive Voice) аст. Шакли танҳо (The book) + was + шакли 3-юми феъл (written)."},
         {"q": "I look forward to ___ you.", "options": ["see", "seeing", "seen"], "correct": "seeing", "rule": "Ибораи 'look forward to' (бесаброна интизор будан) ҳамеша пас аз худ феъли бо суффикси '-ing' (Gerund)-ро талаб мекунад."},
-        {"q": "I wish I ___ more time to study.", "options": ["have", "had", "will have"], "correct": "had", "rule": "Барои ифодаи пушаймонӣ ё орзу дар бораи замони ҳозира пас аз сохтори 'I wish' замони гузашта (Past Simple) истифода мешавад."},
-        {"q": "By the time you arrive, the train ___ left.", "options": ["will", "will have", "has"], "correct": "will have", "rule": "Ин замони Future Perfect аст. Амале, ки то як вақти муайян дар оянда иҷро шуда ба охири мерасад (will have + V3)."}
+        {"q": "I wish I ___ more time to study.", "options": ["have", "had", "will have"], "correct": "had", "rule": "Барои ифодаи орзу дар бораи замони ҳозира пас аз сохтори 'I wish' замони гузашта (Past Simple) истифода мешавад."},
+        {"q": "By the time you arrive, the train ___ left.", "options": ["will", "will have", "has"], "correct": "will have", "rule": "Ин замони Future Perfect аст (will have + V3)."}
     ],
     "B2 (Upper-Intermediate)": [
         {"q": "She avoids ___ sugar to lose weight.", "options": ["to eat", "eating", "eat"], "correct": "eating", "rule": "Феъли 'avoid' (худдорӣ кардан) пас аз худ ҳамеша Герундий (-ing)-ро талаб мекунад."},
-        {"q": "You ___ look at the sun; it damages your eyes.", "options": ["mustn't", "don't have to", "needn't"], "correct": "mustn't", "rule": "Феъли модалии 'mustn't' барои манъ кардани амали хатарнок ё нораво истифода мешавад."},
-        {"q": "I would have helped you if you ___ me.", "options": ["asked", "have asked", "had asked"], "correct": "had asked", "rule": "Ин ҷумлаи шартии намуди сеюм (Third Conditional) аст: Натиҷаи гузашта (would have + V3) + Шарти гузашта (had + V3)."}
+        {"q": "You ___ look at the sun; it damages your eyes.", "options": ["mustn't", "don't have to", "needn't"], "correct": "mustn't", "rule": "Феъли модалии 'mustn't' барои манъ кардани амали хатарнок истифода мешавад."},
+        {"q": "I would have helped you if you ___ me.", "options": ["asked", "have asked", "had asked"], "correct": "had asked", "rule": "Ин ҷумлаи шартии намуди сеюм (Third Conditional) аст: would have + V3 + had + V3."}
     ],
     "C1 (Advanced)": [
         {"q": "Hardly ___ entered the room when the phone rang.", "options": ["I had", "had I", "I received"], "correct": "had I", "rule": "Ин сохтори инверсия (Inversion) аст. Баъд аз калимаҳои манфии 'Hardly' аввал феъли ёвар (had) ва баъд ҷонишин (I) меояд."},
-        {"q": "If I had studied harder, I ___ a degree now.", "options": ["would have", "will have", "would have 3"], "correct": "would have", "rule": "Ин ҷумлаи шартии омехта (Mixed Conditional) аст: Шарти гузашта + Натиҷаи ҳозира."},
+        {"q": "If I had studied harder, I ___ a degree now.", "options": ["would have", "will have", "would have 3"], "correct": "would have", "rule": "Ин ҷумлаи шартии омехта (Mixed Conditional) аст."},
         {"q": "The CEO suggested ___ the meeting until next week.", "options": ["to postpone", "postponing", "postponed"], "correct": "postponing", "rule": "Феъли 'suggest' пас аз худ Герундий (-ing)-ро талаб мекунад."},
         {"q": "She was completely taken ___ by his smooth words.", "options": ["in", "off", "away"], "correct": "in", "rule": "Феъли иборавии 'take in' маънои 'фиреб хӯрдан'-ро дорад."},
-        {"q": "It is crucial that he ___ here on time.", "options": ["is", "be", "was"], "correct": "be", "rule": "Ин сохтори Subjunctive Mood аст. Пас аз 'It is crucial that' феъл дар шакли асосии худ (be) меояд."}
+        {"q": "It is crucial that he ___ here on time.", "options": ["is", "be", "was"], "correct": "be", "rule": "Ин сохтори Subjunctive Mood аст. Феъл дар шакли асосии худ (be) меояд."}
     ]
 }
 
@@ -176,5 +176,5 @@ def run_flask():
 if __name__ == '__main__':
     threading.Thread(target=run_flask, daemon=True).start()
     print("Bot started successfully...")
-    bot.remove_webhook()  # Ҳамаи вебхукҳо ва конфликтҳои кӯҳнаро тоза мекунад
-    bot.infinity_polling()  # Поллинги бехато ва мустаҳкам
+    bot.remove_webhook()  # Тоза кардани вебхукҳои кӯҳна
+    bot.infinity_polling()  # Поллинги тоза ва бе конфликт
