@@ -4,27 +4,23 @@ from flask import Flask, request
 import telebot
 from telebot.types import ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 
-# ✅ ТОКЕНИ ТУ
 TOKEN = '8996159898:AAH4t65DElUHgVtQrx5Ck0j8LyBVuWqPmwQ'
-# ✅ URL-И СЕРВЕРИ ТУ ДАР RENDER
 WEBHOOK_URL = 'https://telegram-bot-quiz-3cqc.onrender.com'
 
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
-# БАЗАИ САВОЛҲО
 QUIZ_DATA = {
     "A1 (Beginner)": [
-        {"q": "I ___ from Tajikistan.", "options": ["am", "is", "are"], "correct": "am", "rule": "Бо ҷонишини 'I' ҳамеша феъли то-be 'am' истифода мешавад."},
-        {"q": "She ___ a book every day.", "options": ["read", "reads", "reading"], "correct": "reads", "rule": "Дар замони Present Simple барои He/She/It ба охири feъл 's' илова мешавад."},
-        {"q": "Where ___ you live?", "options": ["do", "does", "is"], "correct": "do", "rule": "Бо ҷонишини 'you' феъли ёвари 'do' истифода мешавад."},
-        {"q": "They ___ have a car.", "options": ["don't", "doesn't", "not"], "correct": "don't", "rule": "Инкор барои шакли ҷамъ (They) бо ёрии 'don't' сохта мешавад."},
-        {"q": "He ___ football on Sundays.", "options": ["plays", "play", "playing"], "correct": "plays", "rule": "Дар Present Simple барои He/She/It ба feъл '-s' илова мешавад."}
+        {"q": "I ___ from Tajikistan.", "options": ["am", "is", "are"], "correct": "am", "rule": "Бо ҷонишини I ҳамеша am мешавад."},
+        {"q": "She ___ a book every day.", "options": ["read", "reads", "reading"], "correct": "reads", "rule": "Барои He/She/It суффикси -s илова мешавад."},
+        {"q": "Where ___ you live?", "options": ["do", "does", "is"], "correct": "do", "rule": "Бо you феъли ёвари do меояд."},
+        {"q": "They ___ have a car.", "options": ["don't", "doesn't", "not"], "correct": "don't", "rule": "Инкор барои They бо don't мешавад."},
+        {"q": "He ___ football on Sundays.", "options": ["plays", "play", "playing"], "correct": "plays", "rule": "Барои He феъл бо -s меояд."}
     ],
     "A2 (Elementary)": [
-        {"q": "Yesterday I ___ to the park.", "options": ["go", "went", "gone"], "correct": "went", "rule": "Калимаи 'Yesterday' нишон медиҳад, ки замон Past Simple аст. Шакли гузаштаи 'go' -> 'went' мешавад."},
-        {"q": "He is ___ than his brother.", "options": ["tall", "taller", "tallest"], "correct": "taller", "rule": "Барои муқоисаи ду шахс ба сифат суффикси '-er' илова карда мешавад."},
-        {"q": "Have you ___ English before?", "options": ["study", "studied", "studying"], "correct": "studied", "rule": "Дар замони Present Perfect пас аз 'have/has' шакли сеюми феъл (V3) меояд."}
+        {"q": "Yesterday I ___ to the park.", "options": ["go", "went", "gone"], "correct": "went", "rule": "Гузаштаи go мешавад went."},
+        {"q": "He is ___ than his brother.", "options": ["tall", "taller", "tallest"], "correct": "taller", "rule": "Муқоиса бо суффикси -er сохта мешавад."}
     ]
 }
 
@@ -41,25 +37,20 @@ def getMessage():
 def webhook_setup():
     bot.remove_webhook()
     bot.set_webhook(url=WEBHOOK_URL + '/' + TOKEN)
-    return "Webhook is configured successfully! 🚀"
+    return "Webhook configured! 🚀"
 
 @bot.message_handler(commands=['start'])
 def start_quiz(message):
     user_id = message.from_user.id
     USER_DATA[user_id] = {"score": 0, "current_q": 0, "level": "", "questions": [], "wrong_answers": [], "state": "CHOOSE_LEVEL"}
     
-    welcome_text = (
-        "👋 Welcome to the English Quiz Bot!\n\n"
-        "👤 **Developer:** Abdurahim Sheraliev\n"
-        "📚 This bot will help you test your English language levels.\n\n"
-        "💡 Please, choose your level:"
-    )
+    welcome_text = "👋 Welcome to the English Quiz Bot!\n\nPlease, choose your level:"
     
     markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     markup.add(KeyboardButton("A1 (Beginner)"))
     markup.add(KeyboardButton("A2 (Elementary)"))
     
-    bot.send_message(user_id, welcome_text, reply_markup=markup, parse_mode="Markdown")
+    bot.send_message(user_id, welcome_text, reply_markup=markup)
 
 @bot.message_handler(func=lambda message: True)
 def handle_message(message):
@@ -84,7 +75,7 @@ def handle_message(message):
             USER_DATA[user_id]["wrong_answers"] = []
             USER_DATA[user_id]["state"] = "QUIZ_RUNNING"
             
-            bot.send_message(user_id, f"🏁 You have chosen **{text}**. The quiz has started!", parse_mode="Markdown", reply_markup=ReplyKeyboardRemove())
+            bot.send_message(user_id, f"🏁 You have chosen {text}. The quiz has started!", reply_markup=ReplyKeyboardRemove())
             send_question(user_id)
 
     elif state == "QUIZ_RUNNING":
@@ -117,34 +108,31 @@ def send_question(user_id):
         return
 
     question = q_list[current_q]
-    text = f"❓ **Question {current_q + 1}/{len(q_list)}:**\n\n{question['q']}"
+    
+    # Матни оддӣ бе форматкунии Markdown, то ки хатогӣ нашавад
+    text = f"Question {current_q + 1} of {len(q_list)}:\n\n{question['q']}"
     
     markup = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     for opt in question["options"]:
         markup.add(KeyboardButton(opt))
         
-    bot.send_message(user_id, text, reply_markup=markup, parse_mode="Markdown")
+    bot.send_message(user_id, text, reply_markup=markup)
 
 def show_results(user_id):
     score = USER_DATA[user_id]["score"]
     wrongs = USER_DATA[user_id]["wrong_answers"]
     total = len(USER_DATA[user_id]["questions"])
     
-    result_text = f"🏁 **The quiz is over!**\n\n📊 Your score: **{score} out of {total}**\n\n"
+    result_text = f"🏁 The quiz is over!\n📊 Your score: {score} out of {total}\n\n"
     
     if wrongs:
-        result_text += "🛠 **Таҳлили хатогиҳо ва қоидаҳо:**\n\n"
+        result_text += "🛠 Таҳлили хатогиҳо:\n\n"
         for idx, w in enumerate(wrongs):
-            result_text += (
-                f"❌ *Хатогии {idx+1}:*\n"
-                f"❓ Савол: `{w['q']}`\n"
-                f"✅ Ҷавоби дуруст: *{w['correct']}*\n"
-                f"💡 **Қоида:** {w['rule']}\n"
-                f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
-            )
+            result_text += f"❌ Хатогии {idx+1}:\n❓ Савол: {w['q']}\n✅ Ҷавоб: {w['correct']}\n💡 Қоида: {w['rule']}\n\n"
+            
     result_text += "\n🔄 Press /start to try again."
     USER_DATA[user_id]["state"] = "CHOOSE_LEVEL"
-    bot.send_message(user_id, result_text, parse_mode="Markdown", reply_markup=ReplyKeyboardRemove())
+    bot.send_message(user_id, result_text, reply_markup=ReplyKeyboardRemove())
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
