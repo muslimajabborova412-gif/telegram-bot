@@ -6,7 +6,7 @@ from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import Application, CommandHandler, CallbackQueryHandler, ContextTypes
 
 # ⚠️ ТОКЕНИ НАВИ ХУДРО ДАР БАЙНИ СИТАТАҲО БОДИҚҚАТ ГУЗОРЕД
-TOKEN = '8996159898:AAEFani_soW7FmDlf2Uvrga0ruJKWfN9r64'
+TOKEN = '8996159898:AAHYcbpdDQCkBPi8LGHukj6ZVP0LIKw11Vc'
 
 app = Flask(__name__)
 
@@ -14,40 +14,40 @@ app = Flask(__name__)
 def home():
     return "English Quiz Bot is running! 🚀"
 
-# БАЗАИ САВОЛҲО
+# БАЗАИ ПУРРАИ САВОЛҲО БЕ ҲЕҶ ГУНА СЕ НУҚТА
 QUIZ_DATA = {
     "A1 (Beginner)": [
         {"q": "I ___ from Tajikistan.", "options": ["am", "is", "are"], "correct": "am", "rule": "Бо ҷонишини 'I' (ман) ҳамеша феъли то-be 'am' истифода мешавад."},
-        {"q": "She ___ a book every day.", "options": ["read", "reads", "reading"], "correct": "reads", "rule": "Дар замони Present Simple барои ..."},
-        {"q": "Where ___ you live?", "options": ["do", "does", "is"], "correct": "do", "rule": "Барои сохтани ҷумлаи саволӣ..."},
-        {"q": "They ___ have a car.", "options": ["don't", "doesn't", "not"], "correct": "don't", "rule": "Инкори ҷумла..."},
-        {"q": "He ___ football on Sundays.", "options": ["plays", "play", "playing"], "correct": "plays", "rule": "Дар Present Simple..."}
+        {"q": "She ___ a book every day.", "options": ["read", "reads", "reading"], "correct": "reads", "rule": "Дар замони Present Simple барои шахси сеюми танҳо (He, She, It) ба охири феъл суффикси '-s' илова мешавад."},
+        {"q": "Where ___ you live?", "options": ["do", "does", "is"], "correct": "do", "rule": "Барои сохтани ҷумлаи саволӣ дар замони Present Simple бо ҷонишини 'you' феъли ёвари 'do' истифода мешавад."},
+        {"q": "They ___ have a car.", "options": ["don't", "doesn't", "not"], "correct": "don't", "rule": "Инкори ҷумла дар замони Present Simple барои шакли ҷамъ (They) бо ёрии 'don't' сохта мешавад."},
+        {"q": "He ___ football on Sundays.", "options": ["plays", "play", "playing"], "correct": "plays", "rule": "Дар Present Simple барои He/She/It ба феъл '-s' илова мешавад."}
     ],
     "A2 (Elementary)": [
-        {"q": "Yesterday I ___ to the park.", "options": ["go", "went", "gone"], "correct": "went", "rule": "Past Simple..."},
-        {"q": "He is ___ than his brother.", "options": ["tall", "taller", "tallest"], "correct": "taller", "rule": "Comparative degree..."},
-        {"q": "Have you ___ English before?", "options": ["study", "studied", "studying"], "correct": "studied", "rule": "Present Perfect..."},
-        {"q": "Listen! The baby ___.", "options": ["cries", "is crying", "cried"], "correct": "is crying", "rule": "Present Continuous..."},
-        {"q": "There ___ some milk in the fridge.", "options": ["is", "are", "any"], "correct": "is", "rule": "Исми ҳисобнашаванда..."}
+        {"q": "Yesterday I ___ to the park.", "options": ["go", "went", "gone"], "correct": "went", "rule": "Калимаи 'Yesterday' (дирӯз) нишон медиҳад, ки ҷумла дар замони гузаштаи оддӣ (Past Simple) аст."},
+        {"q": "He is ___ than his brother.", "options": ["tall", "taller", "tallest"], "correct": "taller", "rule": "Барои муқоисаи ду шахс ба сифатҳои кӯтоҳ суффикси '-er' илова карда мешавад."},
+        {"q": "Have you ___ English before?", "options": ["study", "studied", "studying"], "correct": "studied", "rule": "Дар замони Present Perfect пас аз 'have/has' шакли сеюми феъл (V3) истифода мешавад."},
+        {"q": "Listen! The baby ___.", "options": ["cries", "is crying", "cried"], "correct": "is crying", "rule": "Калимаи 'Listen!' нишон медиҳад, ки амал дар ҳамин сония рафта истодааст (Present Continuous)."},
+        {"q": "There ___ some milk in the fridge.", "options": ["is", "are", "any"], "correct": "is", "rule": "Ибораи 'milk' (шир) исми ҳисобнашаванда аст, бинобар ин бо он 'is' истифода мешавад."}
     ],
     "B1 (Intermediate)": [
-        {"q": "If it rains, we ___ stay at home.", "options": ["will", "would", "shall"], "correct": "will", "rule": "First Conditional..."},
-        {"q": "The book ___ written by him in 2024.", "options": ["is", "was", "were"], "correct": "was", "rule": "Passive Voice..."},
-        {"q": "I look forward to ___ you.", "options": ["see", "seeing", "seen"], "correct": "seeing", "rule": "look forward to + Gerund..."},
-        {"q": "I wish I ___ more time to study.", "options": ["have", "had", "will have"], "correct": "had", "rule": "I wish + Past Simple..."},
-        {"q": "By the time you arrive, the train ___ left.", "options": ["will", "will have", "has"], "correct": "will have", "rule": "Future Perfect..."}
+        {"q": "If it rains, we ___ stay at home.", "options": ["will", "would", "shall"], "correct": "will", "rule": "Ин ҷумлаи шартии намуди якум (First Conditional) аст: Present + Will."},
+        {"q": "The book ___ written by him in 2024.", "options": ["is", "was", "were"], "correct": "was", "rule": "Ин ҷумла дар замони гузаштаи маҷҳул (Passive Voice) аст. Шакли танҳо + was + V3."},
+        {"q": "I look forward to ___ you.", "options": ["see", "seeing", "seen"], "correct": "seeing", "rule": "Ибораи 'look forward to' ҳамеша пас аз худ Герундий (-ing)-ро талаб мекунад."},
+        {"q": "I wish I ___ more time to study.", "options": ["have", "had", "will have"], "correct": "had", "rule": "Барои ифодаи орзу дар бораи замони ҳозира пас аз сохтори 'I wish' замони гузашта истифода мешавад."},
+        {"q": "By the time you arrive, the train ___ left.", "options": ["will", "will have", "has"], "correct": "will have", "rule": "Ин замони Future Perfect аст (will have + V3)."}
     ],
     "B2 (Upper-Intermediate)": [
-        {"q": "She avoids ___ sugar to lose weight.", "options": ["to eat", "eating", "eat"], "correct": "eating", "rule": "avoid + Gerund (-ing)."},
-        {"q": "You ___ look at the sun; it damages your eyes.", "options": ["mustn't", "don't have to", "needn't"], "correct": "mustn't", "rule": "mustn't барои манъ кардан."},
-        {"q": "I would have helped you if you ___ me.", "options": ["asked", "have asked", "had asked"], "correct": "had asked", "rule": "Third Conditional."}
+        {"q": "She avoids ___ sugar to lose weight.", "options": ["to eat", "eating", "eat"], "correct": "eating", "rule": "Феъли 'avoid' (худдорӣ кардан) пас аз худ ҳамеша Герундий (-ing)-ро талаб мекунад."},
+        {"q": "You ___ look at the sun; it damages your eyes.", "options": ["mustn't", "don't have to", "needn't"], "correct": "mustn't", "rule": "Феъли модалии 'mustn't' барои манъ кардани амали хатарнок истифода мешавад."},
+        {"q": "I would have helped you if you ___ me.", "options": ["asked", "have asked", "had asked"], "correct": "had asked", "rule": "Ин ҷумлаи шартии намуди сеюм (Third Conditional) аст: would have + V3 + had + V3."}
     ],
     "C1 (Advanced)": [
-        {"q": "Hardly ___ entered the room when the phone rang.", "options": ["I had", "had I", "I received"], "correct": "had I", "rule": "Inversion сохтори мураккаб."},
-        {"q": "If I had studied harder, I ___ a degree now.", "options": ["would have", "will have", "would have 3"], "correct": "would have", "rule": "Mixed Conditional."},
-        {"q": "The CEO suggested ___ the meeting until next week.", "options": ["to postpone", "postponing", "postponed"], "correct": "postponing", "rule": "suggest + Gerund."},
-        {"q": "She was completely taken ___ by his smooth words.", "options": ["in", "off", "away"], "correct": "in", "rule": "take in - фиреб хӯрдан."},
-        {"q": "It is crucial that he ___ here on time.", "options": ["is", "be", "was"], "correct": "be", "rule": "Subjunctive Mood."}
+        {"q": "Hardly ___ entered the room when the phone rang.", "options": ["I had", "had I", "I received"], "correct": "had I", "rule": "Ин сохтори инверсия (Inversion) аст. Баъд аз калимаҳои манфии 'Hardly' аввал феъли ёвар (had) меояд."},
+        {"q": "If I had studied harder, I ___ a degree now.", "options": ["would have", "will have", "would have 3"], "correct": "would have", "rule": "Ин ҷумлаи шартии омехта (Mixed Conditional) аст: Шарти гузашта + Натиҷаи ҳозира."},
+        {"q": "The CEO suggested ___ the meeting until next week.", "options": ["to postpone", "postponing", "postponed"], "correct": "postponing", "rule": "Феъли 'suggest' пас аз худ Герундий (-ing)-ро талаб мекунад."},
+        {"q": "She was completely taken ___ by his smooth words.", "options": ["in", "off", "away"], "correct": "in", "rule": "Феъли иборавии 'take in' маънои 'фиреб хӯрдан'-ро дорад."},
+        {"q": "It is crucial that he ___ here on time.", "options": ["is", "be", "was"], "correct": "be", "rule": "Ин сохтори Subjunctive Mood аст. Пас аз 'It is crucial that' феъл дар шакли асосии худ (be) меояд."}
     ]
 }
 
@@ -179,8 +179,6 @@ def main() -> None:
     application.add_handler(CallbackQueryHandler(handle_callback))
 
     print("Bot started successfully...")
-    
-    # 🌟 ИСЛОҲИ ТЕХНИКИИ СЕҲРНОК: Ҳамаи конфликтҳоро нест мекунад!
     application.run_polling(drop_pending_updates=True)
 
 if __name__ == '__main__':
