@@ -14,7 +14,7 @@ app = Flask(__name__)
 def home():
     return "Bot is running! 🚀"
 
-# БАЗАИ САВОЛҲО
+# БАЗАИ САВОЛҲО БО ИЛОВАИ ДАРАҶАИ C1
 QUIZ_DATA = {
     "A1 (Beginner)": [
         {"q": "I ___ from Tajikistan.", "options": ["am", "is", "are"], "correct": "am", "rule": "Бо ҷонишини 'I' (ман) ҳамеша феъли то-be 'am' истифода мешавад."},
@@ -25,7 +25,7 @@ QUIZ_DATA = {
     ],
     "A2 (Elementary)": [
         {"q": "Yesterday I ___ to the park.", "options": ["go", "went", "gone"], "correct": "went", "rule": "Калимаи 'Yesterday' (дирӯз) нишон медиҳад, ки ҷумла дар замони гузаштаи оддӣ (Past Simple) аст. Феъли нодурусти 'go' дар замони гузашта 'went' мешавад."},
-        {"q": "He is ___ than his brother.", "options": ["tall", "taller", "tallest"], "correct": "taller", "rule": "Барои муқоисаи два шахс ё ашё (Comparative degree) ба сифатҳои кӯтоҳ суффикси '-er' илова карда мешавад."},
+        {"q": "He is ___ than his brother.", "options": ["tall", "taller", "tallest"], "correct": "taller", "rule": "Барои муқоисаи ду шахс ё ашё (Comparative degree) ба сифатҳои кӯтоҳ суффикси '-er' илова карда мешавад."},
         {"q": "Have you ___ English before?", "options": ["study", "studied", "studying"], "correct": "studied", "rule": "Дар замони Present Perfect пас аз 'have/has' ҳамеша шакли сеюми феъл (V3) ё феъли бо суффикси '-ed' истифода мешавад."},
         {"q": "Listen! The baby ___.", "options": ["cries", "is crying", "cried"], "correct": "is crying", "rule": "Калимаи 'Listen!' (Гӯш кун!) нишон медиҳад, ки амал дар ҳамин сонияи гап задан рафта истодааст (Present Continuous: am/is/are + V-ing)."},
         {"q": "There ___ some milk in the fridge.", "options": ["is", "are", "any"], "correct": "is", "rule": "Ибораи 'milk' (шир) исми ҳисобнашаванда аст, бинобар ин бо он феъли шакли танҳо (is) истифода мешавад."}
@@ -36,6 +36,13 @@ QUIZ_DATA = {
         {"q": "I look forward to ___ you.", "options": ["see", "seeing", "seen"], "correct": "seeing", "rule": "Ибораи 'look forward to' (бесаброна интизор будан) ҳамеша пас аз худ феъли бо суффикси '-ing' (Gerund)-ро талаб мекунад."},
         {"q": "I wish I ___ more time to study.", "options": ["have", "had", "will have"], "correct": "had", "rule": "Барои ифодаи пушаймонӣ ё орзу дар бораи замони ҳозира пас аз сохтори 'I wish' замони гузашта (Past Simple) истифода мешавад."},
         {"q": "By the time you arrive, the train ___ left.", "options": ["will", "will have", "has"], "correct": "will have", "rule": "Ин замони Future Perfect аст. Амале, ки то як вақти муайян дар оянда иҷро шуда ба охир мерасад (will have + V3)."}
+    ],
+    "C1 (Advanced)": [
+        {"q": "Hardly ___ entered the room when the phone rang.", "options": ["I had", "had I", "I received"], "correct": "had I", "rule": "Ин сохтори инверсия (Inversion) аст. Баъд аз калимаҳои манфии 'Hardly / Scarcely' аввал феъли ёвар (had) ва баъд ҷонишин (I) меояд."},
+        {"q": "If I had studied harder, I ___ a degree now.", "options": ["would have", "will have", "would have 3"], "correct": "would have", "rule": "Ин ҷумлаи шартии омехта (Mixed Conditional) аст: Шарти гузашта (If + Past Perfect) + Натиҷаи ҳозира (would + V1)."},
+        {"q": "The CEO suggested ___ the meeting until next week.", "options": ["to postpone", "postponing", "postponed"], "correct": "postponing", "rule": "Феъли 'suggest' (пешниҳод кардан) пас аз худ ҳамеша Герундий (феъли бо суффикси -ing)-ро талаб мекунад."},
+        {"q": "She was completely taken ___ by his smooth words.", "options": ["in", "off", "away"], "correct": "in", "rule": "Феъли иборавии 'take in' (дар шакли маҷҳул: be taken in) маънои 'фиреб хӯрдан'-ро дорад."},
+        {"q": "It is crucial that he ___ here on time.", "options": ["is", "be", "was"], "correct": "be", "rule": "Ин сохтори Subjunctive Mood (майли шартӣ) аст. Баъд аз ибораҳои 'It is crucial / important / necessary that' феъл дар шакли аввалаи худ (инфинитив бе to, яъне 'be') истифода мешавад."}
     ]
 }
 
@@ -78,7 +85,6 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         USER_DATA[user_id]["score"] = 0
         USER_DATA[user_id]["wrong_answers"] = []
         
-        # 100% паёми нав мефиристем, то бот дармонда нашавад
         await context.bot.send_message(chat_id=user_id, text=f"🏁 You have chosen **{level}**. The quiz has started!")
         await send_question(context, user_id)
 
@@ -103,7 +109,7 @@ async def handle_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         USER_DATA[user_id]["current_q"] += 1
         await send_question(context, user_id)
 
-async def send_question(context, user_id):
+async def send_question(context: ContextTypes.DEFAULT_TYPE, user_id: int):
     current_q = USER_DATA[user_id]["current_q"]
     q_list = USER_DATA[user_id]["questions"]
 
@@ -120,10 +126,9 @@ async def send_question(context, user_id):
         keyboard.append([InlineKeyboardButton(opt, callback_data=f"ans:{idx}:{is_correct}")])
         
     reply_markup = InlineKeyboardMarkup(keyboard)
-    # Истифодаи бевоситаи контекст барои кафолати расонидани паём
     await context.bot.send_message(chat_id=user_id, text=text, reply_markup=reply_markup, parse_mode="Markdown")
 
-async def show_results(context, user_id):
+async def show_results(context: ContextTypes.DEFAULT_TYPE, user_id: int):
     score = USER_DATA[user_id]["score"]
     wrongs = USER_DATA[user_id]["wrong_answers"]
     total = len(USER_DATA[user_id]["questions"])
