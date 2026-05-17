@@ -81,7 +81,6 @@ USER_DATA = {}
 def getMessage():
     json_string = request.get_data().decode('utf-8')
     update = telebot.types.Update.de_json(json_string)
-    print(f"--> Received update: {update.update_id}") # Лог барои санҷидани кор
     bot.process_new_updates([update])
     return "!", 200
 
@@ -89,13 +88,11 @@ def getMessage():
 def webhook_setup():
     bot.remove_webhook()
     status = bot.set_webhook(url=WEBHOOK_URL + '/' + TOKEN)
-    print(f"--> Webhook setup status: {status}")
     return f"Webhook status: {status} 🚀"
 
 @bot.message_handler(commands=['start'])
 def start_quiz(message):
     user_id = message.from_user.id
-    print(f"--> User {user_id} started the bot") # Лог барои дидани паёми старт
     ALL_USERS.add(user_id)
     ACTIVE_USERS.add(user_id)
     
@@ -149,3 +146,73 @@ def handle_callback(call):
         if user_id in USER_DATA:
             current_q_idx = USER_DATA[user_id]["current_q"]
             q_list = USER_DATA[user_id]["questions"]
+            
+            if current_q_idx < len(q_list):
+                current_question = q_list[current_q_idx]
+                chosen_option = current_question["options"][int(ans_idx)]
+                
+                updated_text = f"❓ **Question {current_q_idx + 1}/{len(q_list)}:**\n`{current_question['q']}`\n\n📥 *Your choice:* {chosen_option}"
+                bot.edit_message_text(updated_text, chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None, parse_mode="Markdown")
+                
+                if is_correct == "1":
+                    USER_DATA[user_id]["score"] += 1
+                    bot.answer_callback_query(call.id, "✅ Correct!")
+                else:
+                    USER_DATA[user_id]["wrong_answers"].append({
+                        "q": current_question["q"],
+                        "chosen": chosen_option,
+                        "correct": current_question["correct"],
+                        "rule": current_question["rule"]
+                    })
+                    bot.answer_callback_query(call.id, "❌ Incorrect!")
+                
+                USER_DATA[user_id]["current_q"] += 1
+                send_question(user_id)
+
+def send_question(user_id):
+    current_q = USER_DATA[user_id]["current_q"]
+    q_list = USER_DATA[user_id]["questions"]
+
+    if current_q >= len(q_list):
+        show_results(user_id)
+        return
+
+    question = q_list[current_q]
+    text = f"❓ **Question {current_q + 1}/{len(q_list)}:**\n\n`{question['q']}`"
+    
+    markup = InlineKeyboardMarkup()
+    for idx, opt in enumerate(question["options"]):
+        is_correct = "1" if opt == question["correct"] else "0"
+        markup.add(InlineKeyboardButton(opt, callback_data=f"ans:{is_correct}:{idx}"))
+        
+    bot.send_message(user_id, text, reply_markup=markup, parse_mode="Markdown")
+
+def show_results(user_id):
+    score = USER_DATA[user_id]["score"]
+    wrongs = USER_DATA[user_id]["wrong_answers"]
+    total = len(USER_DATA[user_id]["questions"])
+    
+    percentage = int((score / total) * 100) if total > 0 else 0
+    
+    result_text = (
+        f"🏁 **The quiz is over!**\n\n"
+        f"📊 Your score: **{score} out of {total}**\n"
+        f"🎯 Your proficiency level: **{percentage}%**\n\n"
+    )
+    
+    if wrongs:
+        result_text += "🛠 **Mistakes Analysis & Explanations:**\n\n"
+        for idx, w in enumerate(wrongs):
+            result_text += (
+                f"❌ *Mistake {idx+1}:*\n"
+                f"❓ Question: `{w['q']}`\n"
+                f"🔻 Your answer: {w['chosen']}\n"
+                f"✅ Correct answer: *{w['correct']}*\n"
+                f"💡 **Grammar Rule:** {w['rule']}\n"
+                f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
+            )
+    else:
+        result_text += "🎉 **Awesome! Perfect score! 100% correct answers!**"
+
+    result_text += "\n🔄 Type /start to take the quiz again."
+    bot.send_message(user_id, result_text, parse_mode="Markdown")
