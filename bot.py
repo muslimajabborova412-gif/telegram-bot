@@ -5,7 +5,7 @@ from flask import Flask
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
-# ✅ ТОКЕНИ НАВИ ТУ АЛЛАКАЙ ДАР ИН ҶОСТ
+# ✅ ТОКЕНИ НАВИ ТУ БОМУВАФФАҚИЯТ ДАР ИН ҶОСТ
 TOKEN = '8996159898:AAH4t65DElUHgVtQrx5Ck0j8LyBVuWqPmwQ'
 
 bot = telebot.TeleBot(TOKEN)
@@ -15,14 +15,14 @@ app = Flask(__name__)
 def home():
     return "English Quiz Bot is running perfectly! 🚀"
 
-# БАЗАИ ПУРРАИ САВОЛҲО БО ҲАМАИ ДАРАҶАҲО (A1 - C1)
+# БАЗАИ ВОҚЕИИ САВОЛҲО (БАРОИ ҲАР ЯК ДАРАҶА 5 САВОЛӢ)
 QUIZ_DATA = {
     "A1 (Beginner)": [
         {"q": "I ___ from Tajikistan.", "options": ["am", "is", "are"], "correct": "am", "rule": "Бо ҷонишини 'I' (ман) ҳамеша феъли то-be 'am' истифода мешавад."},
         {"q": "She ___ a book every day.", "options": ["read", "reads", "reading"], "correct": "reads", "rule": "Дар замони Present Simple барои шахси сеюми танҳо (He, She, It) ба охири feъл суффикси '-s' ё '-es' илова мешавад."},
         {"q": "Where ___ you live?", "options": ["do", "does", "is"], "correct": "do", "rule": "Барои сохтани ҷумлаи саволӣ дар замони Present Simple бо ҷонишини 'you' феъли ёвари 'do' истифода мешавад."},
         {"q": "They ___ have a car.", "options": ["don't", "doesn't", "not"], "correct": "don't", "rule": "Инкори ҷумла дар замони Present Simple барои шакли ҷамъ (They) бо ёрии 'don't' сохта мешавад."},
-        {"q": "He ___ football on Sundays.", "options": ["plays", "play", "playing"], "correct": "plays", "rule": "Дар Present Simple барои He/She/It ба феъл '-s' илова мешавад."}
+        {"q": "He ___ football on Sundays.", "options": ["plays", "play", "playing"], "correct": "plays", "rule": "Дар Present Simple барои He/She/It ба feъл '-s' илова мешавад."}
     ],
     "A2 (Elementary)": [
         {"q": "Yesterday I ___ to the park.", "options": ["go", "went", "gone"], "correct": "went", "rule": "Калимаи 'Yesterday' (дирӯз) нишон медиҳад, ки ҷумла дар замони гузаштаи оддӣ (Past Simple) аст. Шакли гузаштаи 'go' феъли нодурусти 'went' мешавад."},
@@ -34,7 +34,7 @@ QUIZ_DATA = {
     "B1 (Intermediate)": [
         {"q": "If it rains, we ___ stay at home.", "options": ["will", "would", "shall"], "correct": "will", "rule": "Ин ҷумлаи шартии намуди якум (First Conditional) аст: Шарти ҳозира (Present) + Натиҷаи оянда (Will)."},
         {"q": "The book ___ written by him in 2024.", "options": ["is", "was", "were"], "correct": "was", "rule": "Ин ҷумла дар замони гузаштаи маҷҳул (Passive Voice) аст. Шакли танҳо (The book) + was + шакли 3-юми феъл (written)."},
-        {"q": "I look forward to ___ you.", "options": ["see", "seeing", "seen"], "correct": "seeing", "rule": "Ибораи 'look forward to' (бесаброна интизор будан) ҳамеша пас аз худ феъли бо суффикси '-ing' (Gerund)-ро талаб мекунад."},
+        {"q": "I look forward to ___ you.", "options": ["see", "seeing", "seen"], "correct": "seeing", "rule": "Ибораи 'look forward to' ҳамеша пас аз худ феъли бо суффикси '-ing' (Gerund)-ро талаб мекунад."},
         {"q": "I wish I ___ more time to study.", "options": ["have", "had", "will have"], "correct": "had", "rule": "Барои ифодаи орзу дар бораи замони ҳозира пас аз сохтори 'I wish' замони гузашта (Past Simple) истифода мешавад."},
         {"q": "By the time you arrive, the train ___ left.", "options": ["will", "will have", "has"], "correct": "will have", "rule": "Ин замони Future Perfect аст (will have + V3)."}
     ],
@@ -85,23 +85,17 @@ def handle_callback(call):
         level = data.split(":")[1]
         USER_DATA[user_id]["level"] = level
         
-        all_q = QUIZ_DATA[level].copy()
+        # Саволҳоро аз база мегирем ва омехта мекунем
+        all_q = [item.copy() for item in QUIZ_DATA[level]]
         random.shuffle(all_q)
-        
-        extended_q = []
-        while len(extended_q) < 50:
-            random.shuffle(all_q)
-            for item in all_q:
-                extended_q.append(item.copy())
-                if len(extended_q) == 50:
-                    break
                     
-        USER_DATA[user_id]["questions"] = extended_q
+        USER_DATA[user_id]["questions"] = all_q
         USER_DATA[user_id]["current_q"] = 0
         USER_DATA[user_id]["score"] = 0
         USER_DATA[user_id]["wrong_answers"] = []
         
-        bot.send_message(user_id, f"🏁 You have chosen **{level}**. The quiz has started with 50 questions!", parse_mode="Markdown")
+        total_qs = len(all_q)
+        bot.send_message(user_id, f"🏁 You have chosen **{level}**. The quiz has started with {total_qs} questions!", parse_mode="Markdown")
         send_question(user_id)
 
     elif data.startswith("ans:"):
@@ -130,12 +124,12 @@ def send_question(user_id):
     current_q = USER_DATA[user_id]["current_q"]
     q_list = USER_DATA[user_id]["questions"]
 
-    if current_q >= len(q_list) or current_q >= 50:
+    if current_q >= len(q_list):
         show_results(user_id)
         return
 
     question = q_list[current_q]
-    text = f"❓ **Question {current_q + 1}/50:**\n\n{question['q']}"
+    text = f"❓ **Question {current_q + 1}/{len(q_list)}:**\n\n{question['q']}"
     
     markup = InlineKeyboardMarkup()
     for idx, opt in enumerate(question["options"]):
@@ -147,12 +141,13 @@ def send_question(user_id):
 def show_results(user_id):
     score = USER_DATA[user_id]["score"]
     wrongs = USER_DATA[user_id]["wrong_answers"]
+    total = len(USER_DATA[user_id]["questions"])
     
-    result_text = f"🏁 **The quiz is over!**\n\n📊 Your score: **{score} out of 50**\n\n"
+    result_text = f"🏁 **The quiz is over!**\n\n📊 Your score: **{score} out of {total}**\n\n"
     
     if wrongs:
         result_text += "🛠 **Таҳлили хатогиҳо ва қоидаҳо (бо забони тоҷикӣ):**\n\n"
-        for idx, w in enumerate(wrongs[:15]):
+        for idx, w in enumerate(wrongs):
             result_text += (
                 f"❌ *Хатогии {idx+1}:*\n"
                 f"❓ Савол: `{w['q']}`\n"
@@ -161,10 +156,8 @@ def show_results(user_id):
                 f"💡 **Қоида:** {w['rule']}\n"
                 f"⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯\n"
             )
-        if len(wrongs) > 15:
-            result_text += f"➕ Ва боз {len(wrongs) - 15} хатогии дигар..."
     else:
-        result_text += "🎉 Awesome! You answered all 50 questions correctly!"
+        result_text += f"🎉 Awesome! You answered all {total} questions correctly!"
 
     result_text += "\n🔄 Press /start to try again."
     bot.send_message(user_id, result_text, parse_mode="Markdown")
@@ -176,5 +169,5 @@ def run_flask():
 if __name__ == '__main__':
     threading.Thread(target=run_flask, daemon=True).start()
     print("Bot started successfully...")
-    bot.remove_webhook()  # Тоза кардани вебхукҳои кӯҳна
-    bot.infinity_polling()  # Поллинги тоза ва бе конфликт
+    bot.remove_webhook()
+    bot.infinity_polling()
