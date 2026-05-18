@@ -73,8 +73,6 @@ QUIZ_DATA = {
     ]
 }
 
-ALL_USERS = set()
-ACTIVE_USERS = set()
 USER_DATA = {}
 
 @app.route('/' + TOKEN, methods=['POST'])
@@ -93,11 +91,9 @@ def webhook_setup():
 @bot.message_handler(commands=['start'])
 def start_quiz(message):
     user_id = message.from_user.id
-    ALL_USERS.add(user_id)
-    ACTIVE_USERS.add(user_id)
     
     welcome_text = (
-        "👋 **Welcome to the English_TestBot!**\n\n"
+        "👋 **Welcome to the English Quiz Bot!**\n\n"
         "👤 **Developer:** Abdurahim Sheraliev\n"
         "📚 **Information:** This bot helps you test your English proficiency levels from A1 to C1.\n\n"
         "💡 Please, select your level to begin:"
@@ -109,19 +105,10 @@ def start_quiz(message):
         
     bot.send_message(user_id, welcome_text, reply_markup=markup, parse_mode="Markdown")
 
-@bot.message_handler(commands=['stat'])
-def show_stat(message):
-    bot.send_message(
-        message.from_user.id,
-        f"📊 **Statistics:**\n\n👥 Total Users: **{len(ALL_USERS)}**\n🟢 Active Online Users: **{len(ACTIVE_USERS)}**",
-        parse_mode="Markdown"
-    )
-
 @bot.callback_query_handler(func=lambda call: True)
 def handle_callback(call):
     user_id = call.from_user.id
     data = call.data
-    ACTIVE_USERS.add(user_id)
 
     if data.startswith("start_lvl:"):
         level = data.split(":")[1]
