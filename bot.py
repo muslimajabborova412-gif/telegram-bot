@@ -1,7 +1,7 @@
 import os
-import requests
 from flask import Flask, request
 import telebot
+import yt_dlp
 
 TOKEN = '8996159898:AAH4t65DElUHgVtQrx5Ck0j8LyBVuWqPmwQ'
 WEBHOOK_URL = 'https://telegram-bot-quiz-3cqc.onrender.com'
@@ -30,58 +30,36 @@ def send_welcome(message):
 def download_audio(message):
     url = message.text
     if "youtube.com" in url or "youtu.be" in url:
-        status_msg = bot.reply_to(message, "Мусиқӣ дарёфт шуд. Дар ҳоли боркунӣ аз сервер... ⏳🎧")
+        status_msg = bot.reply_to(message, "Дар ҳоли коркарди мусиқӣ... Каме сабр кунед. ⏳🎧")
         
-        # Танзимоти Cobalt API махсус барои форматҳои аудиоӣ
-        headers = {
-            "Accept": "application/json",
-            "Content-Type": "application/json"
-        }
-        payload = {
-            "url": url,
-            "filenamePattern": "classic",
-            "downloadMode": "audio",  # Боркунии мустақим танҳо ба шакли аудио
-            "audioFormat": "mp3"
+        # Танзимоти устувор барои давр задани блоконидани YouTube (iOS клиент)
+        ydl_opts = {
+            'format': 'bestaudio/best',
+            'outtmpl': '/tmp/%(id)s.%(ext)s',
+            'noplaylist': True,
+            'quiet': True,
+            'extractor_args': {
+                'youtube': {
+                    'player_client': ['ios'],  # Худро ҳамчун iPhone нишон медиҳад ва блок намешавад
+                    'skip': ['dash', 'hls']
+                }
+            }
         }
         
         try:
-            # Истифодаи сервери устувори Cobalt API
-            api_url = "https://api.cobalt.tools/api/json"
-            response = requests.post(api_url, json=payload, headers=headers, timeout=20)
-            result = response.json()
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(url, download=True)
+                filename = ydl.prepare_filename(info)
             
-            # Агар сомона ссылкаи мустақимро баргардонад
-            if result.get("status") == "stream" or result.get("status") == "picker":
-                audio_url = result.get("url")
+            with open(filename, 'rb') as audio_file:
+                title = info.get('title', 'Music')
+                bot.send_audio(message.chat.id, audio_file, caption=f"🎵 **{title}**\n\nТайёр шуд! 😉")
+            
+            if os.path.exists(filename):
+                os.remove(filename)
                 
-                # Агар видео якчанд формат дошта бошад
-                if not audio_url and result.get("picker"):
-                    audio_url = result["picker"][0].get("url")
-                    
-                if audio_url:
-                    # Бор кардани суруд ва фиристодан ба корбар
-                    file_path = "/tmp/music.mp3"
-                    audio_data = requests.get(audio_url, stream=True)
-                    
-                    with open(file_path, 'wb') as f:
-                        for chunk in audio_data.iter_content(chunk_size=1024*1024):
-                            if chunk:
-                                f.write(chunk)
-                                
-                    with open(file_path, 'rb') as audio_file:
-                        bot.send_audio(message.chat.id, audio_file, caption="Мусиқии шумо бомуваффақият тайёр шуд! 😉🎵")
-                        
-                    if os.path.exists(file_path):
-                        os.remove(file_path)
-                        
-                    bot.delete_message(message.chat.id, status_msg.message_id)
-                else:
-                    bot.edit_message_text("Хатогӣ: Ссылкаи аудиоӣ ёфт нашуд. ❌", message.chat.id, status_msg.message_id)
-            elif result.get("status") == "error":
-                bot.edit_message_text(f"Хатогии API: {result.get('text')}", message.chat.id, status_msg.message_id)
-            else:
-                bot.edit_message_text("Сервер банд аст, лутфан дубора кӯшиш кунед. 🔄", message.chat.id, status_msg.message_id)
-                
+            bot.delete_message(message.chat.id, status_msg.message_id)
+            
         except Exception as e:
             bot.edit_message_text(f"Хатогии техникӣ: {e}\nЛутфан дубора кӯшиш кунед.", message.chat.id, status_msg.message_id)
     else:
