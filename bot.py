@@ -30,21 +30,21 @@ def send_welcome(message):
 def download_audio(message):
     url = message.text
     if "youtube.com" in url or "youtu.be" in url:
-        status_msg = bot.reply_to(message, "Дар ҳоли коркарди мусиқӣ... Каме сабр кунед. ⏳🎧")
+        status_msg = bot.reply_to(message, "Дар ҳоли коркарди мусиқӣ бо кукиҳои бехатар... Каме сабр кунед. ⏳🎧")
         
-        # Танзимоти устувор барои давр задани блоконидани YouTube (iOS клиент)
+        # Роҳи файл ба кукиҳо
+        cookies_file = 'youtube_cookies.txt'
+        
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': '/tmp/%(id)s.%(ext)s',
             'noplaylist': True,
             'quiet': True,
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['ios'],  # Худро ҳамчун iPhone нишон медиҳад ва блок намешавад
-                    'skip': ['dash', 'hls']
-                }
-            }
         }
+        
+        # Агар файл мавҷуд бошад, онро ба танзимот ҳамроҳ мекунад
+        if os.path.exists(cookies_file):
+            ydl_opts['cookiefile'] = cookies_file
         
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
