@@ -1,5 +1,4 @@
 pyTelegramBotAPI
-yt-dlp
+requests
 Flask
 gunicorn
-curl_cffi
