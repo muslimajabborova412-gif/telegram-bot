@@ -1,7 +1,7 @@
 import os
+import requests
 from flask import Flask, request
 import telebot
-import yt_dlp
 
 TOKEN = '8996159898:AAH4t65DElUHgVtQrx5Ck0j8LyBVuWqPmwQ'
 WEBHOOK_URL = 'https://telegram-bot-quiz-3cqc.onrender.com'
@@ -30,38 +30,33 @@ def send_welcome(message):
 def download_audio(message):
     url = message.text
     if "youtube.com" in url or "youtu.be" in url:
-        status_msg = bot.reply_to(message, "Дар ҳоли коркарди мусиқӣ бо кукиҳои бехатар... Каме сабр кунед. ⏳🎧")
-        
-        # Роҳи файл ба кукиҳо
-        cookies_file = 'youtube_cookies.txt'
-        
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'outtmpl': '/tmp/%(id)s.%(ext)s',
-            'noplaylist': True,
-            'quiet': True,
-        }
-        
-        # Агар файл мавҷуд бошад, онро ба танзимот ҳамроҳ мекунад
-        if os.path.exists(cookies_file):
-            ydl_opts['cookiefile'] = cookies_file
+        status_msg = bot.reply_to(message, "Дар ҳоли коркард ва табдили мусиқӣ... Лутфан сабр кунед. ⏳🎧")
         
         try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=True)
-                filename = ydl.prepare_filename(info)
+            # Истифодаи сервери кушодаи дуюми содда барои гирифтани ссылкаи MP3
+            api_url = f"https://api.v02.api-host.info/ytmp3?url={url}"
+            response = requests.get(api_url, timeout=30).json()
             
-            with open(filename, 'rb') as audio_file:
-                title = info.get('title', 'Music')
-                bot.send_audio(message.chat.id, audio_file, caption=f"🎵 **{title}**\n\nТайёр шуд! 😉")
-            
-            if os.path.exists(filename):
-                os.remove(filename)
+            if response.get("status") == "success" or "download_url" in response:
+                audio_url = response.get("download_url") or response.get("url")
+                title = response.get("title", "Music")
                 
-            bot.delete_message(message.chat.id, status_msg.message_id)
-            
+                # Фиристодани мусиқӣ мустақиман тавассути ссылка ба Telegram
+                bot.send_audio(message.chat.id, audio_url, caption=f"🎵 **{title}**\n\nТайёр шуд! 😉")
+                bot.delete_message(message.chat.id, status_msg.message_id)
+            else:
+                # Агар сервери аввал хато диҳад, бо усули дуюм кӯшиш мекунад
+                api_url_2 = f"https://api.boxapi.xyz/youtube/v1/audio?url={url}"
+                res2 = requests.get(api_url_2, timeout=30).json()
+                audio_url = res2.get("url")
+                if audio_url:
+                    bot.send_audio(message.chat.id, audio_url, caption="Мусиқии шумо тайёр шуд! 🎵")
+                    bot.delete_message(message.chat.id, status_msg.message_id)
+                else:
+                    bot.edit_message_text("Мутаассифона, серверҳо дар айни замон банд мебошанд. Лутфан дертар кӯшиш кунед. 🔄", message.chat.id, status_msg.message_id)
+                    
         except Exception as e:
-            bot.edit_message_text(f"Хатогии техникӣ: {e}\nЛутфан дубора кӯшиш кунед.", message.chat.id, status_msg.message_id)
+            bot.edit_message_text(f"Хатогии техникӣ: Сервер ҷавоб надод. Лутфан дубора кӯшиш кунед.", message.chat.id, status_msg.message_id)
     else:
         bot.reply_to(message, "Лутфан ссылкаи дурусти YouTube-ро фиристед! ❌")
 
