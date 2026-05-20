@@ -1,7 +1,7 @@
 import os
+import requests
 from flask import Flask, request
 import telebot
-import yt_dlp
 
 TOKEN = '8996159898:AAH4t65DElUHgVtQrx5Ck0j8LyBVuWqPmwQ'
 WEBHOOK_URL = 'https://telegram-bot-quiz-3cqc.onrender.com'
@@ -30,55 +30,63 @@ def send_welcome(message):
 def download_audio(message):
     url = message.text
     if "youtube.com" in url or "youtu.be" in url:
-        status_msg = bot.reply_to(message, "Дар ҳоли коркарди мусиқӣ ва давр задани блокҳои YouTube... Лутфан 1-2 дақиқа сабр кунед. ⏳🎧")
+        status_msg = bot.reply_to(message, "Дар ҳоли дарёфт ва коркарди мусиқӣ бо сервери алтернативӣ... ⏳🎧")
         
-        # Танзимоти махсус барои гузаштани Блок ва Эрори "Sign in to confirm you're not a bot"
-        ydl_opts = {
-            'format': 'bestaudio/best',
-            'outtmpl': '/tmp/%(id)s.%(ext)s',
-            'noplaylist': True,
-            # Ин қисм ботро ҳамчун корбари оддии Android нишон медиҳад:
-            'impersonate': 'chrome', 
-            'http_headers': {
-                'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Mobile Safari/537.36',
-                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-            },
-            'extractor_args': {
-                'youtube': {
-                    'player_client': ['android', 'web'],
-                    'skip': ['dash', 'hls']
-                }
-            }
-        }
-        
+        # Эълони ID-и видео аз ссылка
+        video_id = ""
+        if "youtu.be/" in url:
+            video_id = url.split("youtu.be/")[1].split("?")[0]
+        elif "v=" in url:
+            video_id = url.split("v=")[1].split("&")[0]
+            
+        if not video_id:
+            bot.edit_message_text("Ссылкаи YouTube нодуруст аст! ❌", message.chat.id, status_msg.message_id)
+            return
+
         try:
-            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(url, download=True)
-                filename = ydl.prepare_filename(info)
+            # Истифодаи сервери кушодаи Invidious барои гирифтани аудио-ссылкаи мустақим
+            api_url = f"https://invidious.io.lol/api/v1/videos/{video_id}"
+            response = requests.get(api_url, timeout=15).json()
             
-            with open(filename, 'rb') as audio_file:
-                bot.send_audio(message.chat.id, audio_file, caption="Мусиқии шумо бомуваффақият тайёр шуд! 😉🎵")
+            # Ёфтани беҳтарин файл бо формати аудио
+            audio_url = None
+            for fmt in response.get('adaptiveFormats', []):
+                if fmt.get('type', '').startswith('audio/'):
+                    audio_url = fmt.get('url')
+                    break
             
-            if os.path.exists(filename):
-                os.remove(filename)
+            if not audio_url:
+                # Агар дар сервери аввал наёфт, сервери дуюмро тафтиш мекунад
+                api_url = f"https://vid.puffyan.us/api/v1/videos/{video_id}"
+                response = requests.get(api_url, timeout=15).json()
+                for fmt in response.get('adaptiveFormats', []):
+                    if fmt.get('type', '').startswith('audio/'):
+                        audio_url = fmt.get('url')
+                        break
+
+            if audio_url:
+                # Бор кардани файл ба хотираи сервер ва фиристодан ба Telegram
+                file_path = f"/tmp/{video_id}.mp3"
+                audio_data = requests.get(audio_url, stream=True)
                 
-            bot.delete_message(message.chat.id, status_msg.message_id)
-            
-        except Exception as e:
-            # Агар боз хатогӣ диҳад, кӯшиш мекунад бо усули сабуктар бор кунад
-            bot.edit_message_text(f"Хатогии аввалия: {e}\n\nҚадами дуюм: Кӯшиши боркунӣ бо сервери алтернативӣ... 🔄", message.chat.id, status_msg.message_id)
-            try:
-                ydl_opts['format'] = 'waorst_audio/worst'
-                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                    info = ydl.extract_info(url, download=True)
-                    filename = ydl.prepare_filename(info)
-                with open(filename, 'rb') as audio_file:
-                    bot.send_audio(message.chat.id, audio_file, caption="Мусиқии шумо тайёр шуд! 😉")
-                if os.path.exists(filename): os.remove(filename)
+                with open(file_path, 'wb') as f:
+                    for chunk in audio_data.iter_content(chunk_size=1024*1024):
+                        if chunk:
+                            f.write(chunk)
+                
+                with open(file_path, 'rb') as audio_file:
+                    title = response.get('title', 'Music')
+                    bot.send_audio(message.chat.id, audio_file, caption=f"🎵 **{title}**\n\nТайёр шуд! 😉", parse_mode="Markdown")
+                
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                
                 bot.delete_message(message.chat.id, status_msg.message_id)
-            except Exception as e2:
-                bot.reply_to(message, f"Мутаассифона, YouTube ин видеоро пурра блок кард. Хатогӣ: {e2}")
+            else:
+                bot.edit_message_text("Мутаассифона, аудио барои ин видео пайдо нашуд. ❌", message.chat.id, status_msg.message_id)
+                
+        except Exception as e:
+            bot.edit_message_text(f"Хатогии техникӣ дар сервер: {e}\nЛутфан дубора кӯшиш кунед.", message.chat.id, status_msg.message_id)
     else:
         bot.reply_to(message, "Лутфан ссылкаи дурусти YouTube-ро фиристед! ❌")
 
