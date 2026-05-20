@@ -1,8 +1,21 @@
 import os
-import telebot
-import yt_dlp
+import sys
 
-# Render худаш токени боти кӯҳнаатро автоматӣ ба ин ҷо мегузорад
+# Ин қисм худаш автоматӣ китобхонаҳоро дар Render насб мекунад, агар онҳо набошанд
+try:
+    import telebot
+    import yt_dlp
+    from flask import Flask
+except ModuleNotFoundError:
+    os.system(f'"{sys.executable}" -m pip install pyTelegramBotAPI yt-dlp Flask')
+    import telebot
+    import yt_dlp
+    from flask import Flask
+
+# Насб кардани FFmpeg (барои Render зарур аст)
+os.system("apt-get update && apt-get install -y ffmpeg")
+
+# Лоиҳа Токенро автоматӣ аз боти кӯҳнааат мегирад
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
 
@@ -16,7 +29,6 @@ def download_audio(message):
     if "youtube.com" in url or "youtu.be" in url:
         bot.reply_to(message, "Дар ҳоли коркарди мусиқӣ... Каме сабр кунед. ⏳🎧")
         
-        # Танзимоти файл барои Render (сабт дар папкаи вақтии /tmp)
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': '/tmp/music.%(ext)s',
@@ -33,7 +45,7 @@ def download_audio(message):
             
             audio_path = '/tmp/music.mp3'
             with open(audio_path, 'rb') as audio_file:
-                bot.send_audio(message.chat.id, audio_file, caption="Мусиқии шумо тайёр шуд! Ташаккур барои истифода. 😉")
+                bot.send_audio(message.chat.id, audio_file, caption="Мусиқии шумо тайёр шуд! 😉")
             
             os.remove(audio_path)
         except Exception as e:
@@ -41,8 +53,7 @@ def download_audio(message):
     else:
         bot.reply_to(message, "Лутфан ссылкаи дурусти YouTube-ро фиристед! ❌")
 
-# Барои фаъол нигоҳ доштани Web Service дар Render (Flask)
-from flask import Flask
+# Веб-сервер барои фаъол нигоҳ доштани Render
 app = Flask(name)
 @app.route('/')
 def index(): return "Бот фаъол аст!"
