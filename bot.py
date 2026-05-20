@@ -30,63 +30,60 @@ def send_welcome(message):
 def download_audio(message):
     url = message.text
     if "youtube.com" in url or "youtu.be" in url:
-        status_msg = bot.reply_to(message, "Дар ҳоли дарёфт ва коркарди мусиқӣ бо сервери алтернативӣ... ⏳🎧")
+        status_msg = bot.reply_to(message, "Мусиқӣ дарёфт шуд. Дар ҳоли боркунӣ аз сервер... ⏳🎧")
         
-        # Эълони ID-и видео аз ссылка
-        video_id = ""
-        if "youtu.be/" in url:
-            video_id = url.split("youtu.be/")[1].split("?")[0]
-        elif "v=" in url:
-            video_id = url.split("v=")[1].split("&")[0]
-            
-        if not video_id:
-            bot.edit_message_text("Ссылкаи YouTube нодуруст аст! ❌", message.chat.id, status_msg.message_id)
-            return
-
+        # Танзимоти Cobalt API махсус барои форматҳои аудиоӣ
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "url": url,
+            "filenamePattern": "classic",
+            "downloadMode": "audio",  # Боркунии мустақим танҳо ба шакли аудио
+            "audioFormat": "mp3"
+        }
+        
         try:
-            # Истифодаи сервери кушодаи Invidious барои гирифтани аудио-ссылкаи мустақим
-            api_url = f"https://invidious.io.lol/api/v1/videos/{video_id}"
-            response = requests.get(api_url, timeout=15).json()
+            # Истифодаи сервери устувори Cobalt API
+            api_url = "https://api.cobalt.tools/api/json"
+            response = requests.post(api_url, json=payload, headers=headers, timeout=20)
+            result = response.json()
             
-            # Ёфтани беҳтарин файл бо формати аудио
-            audio_url = None
-            for fmt in response.get('adaptiveFormats', []):
-                if fmt.get('type', '').startswith('audio/'):
-                    audio_url = fmt.get('url')
-                    break
-            
-            if not audio_url:
-                # Агар дар сервери аввал наёфт, сервери дуюмро тафтиш мекунад
-                api_url = f"https://vid.puffyan.us/api/v1/videos/{video_id}"
-                response = requests.get(api_url, timeout=15).json()
-                for fmt in response.get('adaptiveFormats', []):
-                    if fmt.get('type', '').startswith('audio/'):
-                        audio_url = fmt.get('url')
-                        break
-
-            if audio_url:
-                # Бор кардани файл ба хотираи сервер ва фиристодан ба Telegram
-                file_path = f"/tmp/{video_id}.mp3"
-                audio_data = requests.get(audio_url, stream=True)
+            # Агар сомона ссылкаи мустақимро баргардонад
+            if result.get("status") == "stream" or result.get("status") == "picker":
+                audio_url = result.get("url")
                 
-                with open(file_path, 'wb') as f:
-                    for chunk in audio_data.iter_content(chunk_size=1024*1024):
-                        if chunk:
-                            f.write(chunk)
-                
-                with open(file_path, 'rb') as audio_file:
-                    title = response.get('title', 'Music')
-                    bot.send_audio(message.chat.id, audio_file, caption=f"🎵 **{title}**\n\nТайёр шуд! 😉", parse_mode="Markdown")
-                
-                if os.path.exists(file_path):
-                    os.remove(file_path)
-                
-                bot.delete_message(message.chat.id, status_msg.message_id)
+                # Агар видео якчанд формат дошта бошад
+                if not audio_url and result.get("picker"):
+                    audio_url = result["picker"][0].get("url")
+                    
+                if audio_url:
+                    # Бор кардани суруд ва фиристодан ба корбар
+                    file_path = "/tmp/music.mp3"
+                    audio_data = requests.get(audio_url, stream=True)
+                    
+                    with open(file_path, 'wb') as f:
+                        for chunk in audio_data.iter_content(chunk_size=1024*1024):
+                            if chunk:
+                                f.write(chunk)
+                                
+                    with open(file_path, 'rb') as audio_file:
+                        bot.send_audio(message.chat.id, audio_file, caption="Мусиқии шумо бомуваффақият тайёр шуд! 😉🎵")
+                        
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                        
+                    bot.delete_message(message.chat.id, status_msg.message_id)
+                else:
+                    bot.edit_message_text("Хатогӣ: Ссылкаи аудиоӣ ёфт нашуд. ❌", message.chat.id, status_msg.message_id)
+            elif result.get("status") == "error":
+                bot.edit_message_text(f"Хатогии API: {result.get('text')}", message.chat.id, status_msg.message_id)
             else:
-                bot.edit_message_text("Мутаассифона, аудио барои ин видео пайдо нашуд. ❌", message.chat.id, status_msg.message_id)
+                bot.edit_message_text("Сервер банд аст, лутфан дубора кӯшиш кунед. 🔄", message.chat.id, status_msg.message_id)
                 
         except Exception as e:
-            bot.edit_message_text(f"Хатогии техникӣ дар сервер: {e}\nЛутфан дубора кӯшиш кунед.", message.chat.id, status_msg.message_id)
+            bot.edit_message_text(f"Хатогии техникӣ: {e}\nЛутфан дубора кӯшиш кунед.", message.chat.id, status_msg.message_id)
     else:
         bot.reply_to(message, "Лутфан ссылкаи дурусти YouTube-ро фиристед! ❌")
 
