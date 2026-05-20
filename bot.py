@@ -1,23 +1,27 @@
 import os
-import sys
+from flask import Flask, request
+import telebot
+import yt_dlp
 
-# Ин қисм худаш автоматӣ китобхонаҳоро дар Render насб мекунад, агар онҳо набошанд
-try:
-    import telebot
-    import yt_dlp
-    from flask import Flask
-except ModuleNotFoundError:
-    os.system(f'"{sys.executable}" -m pip install pyTelegramBotAPI yt-dlp Flask')
-    import telebot
-    import yt_dlp
-    from flask import Flask
+# Токен ва Ссылкаро аз Render автоматӣ мегирад ё метавони худат дастӣ нависӣ
+TOKEN = os.environ.get('BOT_TOKEN', '8996159898:AAH4t65DElUHgVtQrx5Ck0j8LyBVuWqPmwQ')
+WEBHOOK_URL = 'https://telegram-bot-quiz-3cqc.onrender.com'
 
-# Насб кардани FFmpeg (барои Render зарур аст)
-os.system("apt-get update && apt-get install -y ffmpeg")
+bot = telebot.TeleBot(TOKEN)
+app = Flask(__name__)
 
-# Лоиҳа Токенро автоматӣ аз боти кӯҳнааат мегирад
-BOT_TOKEN = os.environ.get('BOT_TOKEN')
-bot = telebot.TeleBot(BOT_TOKEN)
+@app.route('/' + TOKEN, methods=['POST'])
+def getMessage():
+    json_string = request.get_data().decode('utf-8')
+    update = telebot.types.Update.de_json(json_string)
+    bot.process_new_updates([update])
+    return "!", 200
+
+@app.route('/')
+def webhook_setup():
+    bot.remove_webhook()
+    status = bot.set_webhook(url=WEBHOOK_URL + '/' + TOKEN)
+    return f"Webhook status: {status} 🚀"
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -27,38 +31,35 @@ def send_welcome(message):
 def download_audio(message):
     url = message.text
     if "youtube.com" in url or "youtu.be" in url:
-        bot.reply_to(message, "Дар ҳоли коркарди мусиқӣ... Каме сабр кунед. ⏳🎧")
+        status_msg = bot.reply_to(message, "Дар ҳоли коркарди мусиқӣ... Каме сабр кунед. ⏳🎧")
         
+        # Боркунӣ танҳо ба шакли аудио
         ydl_opts = {
             'format': 'bestaudio/best',
-            'outtmpl': '/tmp/music.%(ext)s',
-            'postprocessors': [{
-                'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'mp3',
-                'preferredquality': '192',
-            }],
+            'outtmpl': '/tmp/%(title)s.%(ext)s',
+            'noplaylist': True,
         }
         
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                ydl.download([url])
+                info = ydl.extract_info(url, download=True)
+                filename = ydl.prepare_filename(info)
             
-            audio_path = '/tmp/music.mp3'
-            with open(audio_path, 'rb') as audio_file:
+            # Фиристодани файл ба корбар
+            with open(filename, 'rb') as audio_file:
                 bot.send_audio(message.chat.id, audio_file, caption="Мусиқии шумо тайёр шуд! 😉")
             
-            os.remove(audio_path)
+            # Тоза кардани файл аз хотираи сервер пас аз фиристодан
+            if os.path.exists(filename):
+                os.remove(filename)
+                
+            bot.delete_message(message.chat.id, status_msg.message_id)
+            
         except Exception as e:
             bot.reply_to(message, f"Хатогии техникӣ рӯй дод: {e}")
     else:
         bot.reply_to(message, "Лутфан ссылкаи дурусти YouTube-ро фиристед! ❌")
 
-# Веб-сервер барои фаъол нигоҳ доштани Render
-app = Flask(name)
-@app.route('/')
-def index(): return "Бот фаъол аст!"
-
-if name == "main":
-    import threading
-    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))).start()
-    bot.polling(none_stop=True)
+if __name__ == '__main__':
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
