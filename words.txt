@@ -1,0 +1,99 @@
+1|Agree|Рози шудан
+1|Alcohol|Алкогол (нӯшокии спиртӣ)
+1|Arrive|Омадан, расидан
+1|August|Август
+1|Boat|Қаиқ, киштӣ
+1|Breakfast|Нонушта
+1|Camera|Камера, аксбардорак
+1|Capital|Пойтахт
+1|Catch|Доштан, қапидан
+1|Duck|Мурғобӣ
+1|Enjoy|Ҳаловат бурдан
+1|Invite|Даъват кардан
+1|Love|Дӯст доштан
+1|Month|Моҳ
+1|Travel|Саёҳат кардан
+1|Typical|Одатӣ, маъмулӣ
+1|Visit|Хабар гирифтан
+1|Weather|Обу ҳаво
+1|Week|Ҳафта
+1|Wine|Шароб (вино)
+2|Adventure|Саргузашт
+2|Approach|Наздик шудан
+2|Carefully|Боэҳтиёт
+2|Chemical|Моддаи химиявӣ
+2|Create|Сохтан, эҷод кардан
+2|Evil|Бадӣ, ҷоҳил
+2|Experiment|Таҷриба, озмоиш
+2|Kill|Куштан
+2|Laboratory|Лаборатория
+2|Laugh|Ханда
+3|Alien|Мавҷудоти бегона
+3|Among|Дар байни
+3|Chart|Ҷадвал, диаграмма
+3|Cloud|Абр
+3|Describe|Тавсиф кардан
+3|Fail|Ноком шудан
+3|Grade|Баҳо, синф
+3|Library|Китобхона
+3|Planet|Сайёра
+3|Solve|Ҳал кардан
+4|Avoid|Дурӣ ҷӯстан
+4|Behave|Рафтори хуб кардан
+4|Calm|Ором
+4|Concern|Хавотирӣ
+4|Expect|Умед доштан
+4|Habit|Одат
+4|Patient|Босабр
+4|Positive|Мусбат
+4|Punish|Ҷазо додан
+4|Village|Деҳа
+5|Active|Фаъол
+5|Adult|Калонсол
+5|Age|Синну сол
+5|Balance|Мувозинат
+5|Bike|Велосипед
+5|Choose|Интихоб кардан
+5|Doctor|Духтур
+5|Football|Футбол
+5|Game|Бозӣ
+5|Heart|Дил
+6|Apart|Ҷудо, дур аз ҳам
+6|Bilingual|Дузабона
+6|Completely|Пурра, комилан
+6|Mirror|Оина
+6|Natural|Табиӣ
+6|Sport|Варзиш
+6|Surprised|Ҳайратзада
+7|Allow|Иҷозат додан
+7|Announce|Эълон кардан
+7|Beside|Дар наздӣ
+7|Challenge|Мушкилот
+7|Expert|Мутахассис
+7|Famous|Машҳур
+7|Peace|Тинҷӣ, сулҳ
+7|Protect|Муҳофизат кардан
+8|Accept|Қабул кардан
+8|Arrange|Танзим кардан
+8|Attend|Иштирок кардан
+8|Chase|Дунболгирӣ кардан
+8|Huge|Хеле калон
+8|Necessary|Зарурӣ
+8|Satisfied|Қонеъ, розӣ
+9|Animal|Ҳайвон
+9|Bus|Автобус
+9|Cat|Гурба
+9|Dog|Саг
+9|Door|Дар
+9|Friend|Дӯст
+9|Hospital|Беморхона
+9|School|Мактаб
+10|Benefit|Фоида, манфиат
+10|Chance|Имконият
+10|Essential|Муҳим, зарурӣ
+10|Far|Дур
+10|Grass|Алаф
+10|Image|Акс, тасвир
+10|Proud|Сарбаланд
+10|Trouble|Мушкилӣ
+25|Example|Намунаи Юнит 25
