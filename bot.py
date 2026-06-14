@@ -24,7 +24,7 @@ DATA_BASE = {
         {"word": "August", "translation": "Август", "example": "August is the eighth month of the year."},
         {"word": "Boat", "translation": "Қаиқ, киштӣ", "example": "We rode a small boat on the lake."},
         {"word": "Breakfast", "translation": "Нонушта", "example": "I had a healthy breakfast this morning."},
-        {"word": "Camera", "translation": "Камера, аксбардорак", "example": "He took a picture with his new camera."},
+        {"word": "Camera", "translation": "Camera", "example": "He took a picture with his new camera."},
         {"word": "Capital", "translation": "Пойтахт", "example": "Dushanbe is the capital of Tajikistan."},
         {"word": "Catch", "translation": "Доштан, қапидан", "example": "Did you catch the ball?"},
         {"word": "Duck", "translation": "Мурғобӣ", "example": "The duck is swimming in the pond."},
@@ -67,7 +67,7 @@ DATA_BASE = {
 
 user_states = {}
 
-# Сохтани тугмаҳои инлайнии Юнитҳо (дар даруни чат)
+# Тугмаҳои инлайнии Юнитҳо
 def get_inline_units_keyboard():
     markup = types.InlineKeyboardMarkup(row_width=3)
     buttons = []
@@ -76,24 +76,24 @@ def get_inline_units_keyboard():
     markup.add(*buttons)
     return markup
 
-# Тугмаи инлайнии оғози тест барои ҳар як Юнит
+# Тугмаи оғози тест
 def get_inline_quiz_keyboard(unit_num):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(f"🎲 Оғози Тести Юнит {unit_num}", callback_data=f"start_quiz_{unit_num}"))
-    markup.add(types.InlineKeyboardButton("📚 Баргашт ба рӯйхати Юнитҳо", callback_data="back_to_units"))
+    markup.add(types.InlineKeyboardButton("📚 Рӯйхати Юнитҳо", callback_data="back_to_units"))
     return markup
 
 @bot.message_handler(commands=['start', 'menu'])
 def send_welcome(message):
     welcome_msg = (
-        "Салом! 👋 Хуш омадед ба боти омӯзишии калимаҳои англисӣ!\n\n"
+        "Салом! 👋 Хуш омадед ба боти калимаҳои англисӣ!\n\n"
         "👨‍💻 **Созанда:** Абдурраҳим\n\n"
-        "📚 **Кадом Юнитро хондан мехоҳӣ? Аз тугмаҳои зерин интихоб кун:**"
+        "📚 **Кадом Юнитро хондан мехоҳӣ? Интихоб кун:**"
     )
-    # Клавиатураи оддии поёни экранро нест мекунем (ReplyKeyboardRemove)
-    bot.send_message(message.chat.id, welcome_msg, reply_markup=get_inline_units_keyboard(), parse_mode="Markdown")
+    # Истифодаи ReplyKeyboardRemove барои он ки ягон тугмаи кӯҳна дар поён намонад
+    bot.send_message(message.chat.id, welcome_msg, reply_markup=types.ReplyKeyboardRemove())
+    bot.send_message(message.chat.id, "Интихоби Юнит 👇", reply_markup=get_inline_units_keyboard())
 
-# Хендлер барои пахши тугмаҳои инлайнӣ
 @bot.callback_query_handler(func=lambda call: True)
 def handle_inline_buttons(call):
     chat_id = call.message.chat.id
@@ -107,7 +107,6 @@ def handle_inline_buttons(call):
             for i, item in enumerate(DATA_BASE[unit_number], 1):
                 response += f"{i}. 🔤 **{item['word']}** = 🇹🇯 {item['translation']}\n📝 _Мисол:_ {item['example']}\n\n"
             
-            # Калимаҳо ҳамчун паёми НАВ меоянд (кӯҳнаҳо тоза намешаванд)
             bot.send_message(chat_id, response, parse_mode="Markdown", reply_markup=get_inline_quiz_keyboard(unit_number))
         else:
             bot.send_message(chat_id, f"ℹ️ Калимаҳо бо мисолҳояшон барои **Unit {unit_number}** ба наздикӣ илова карда мешаванд!", reply_markup=get_inline_units_keyboard())
@@ -115,7 +114,7 @@ def handle_inline_buttons(call):
         bot.answer_callback_query(call.id)
 
     elif data == "back_to_units":
-        bot.send_message(chat_id, "📚 **Кадом Юнитро хондан мехоҳӣ? Интихоб кун:**", reply_markup=get_inline_units_keyboard())
+        bot.send_message(chat_id, "📚 **Кадом Юнитро хондан мехоҳӣ?**", reply_markup=get_inline_units_keyboard())
         bot.answer_callback_query(call.id)
 
     elif data.startswith("start_quiz_"):
@@ -127,7 +126,6 @@ def handle_inline_buttons(call):
             bot.answer_callback_query(call.id)
             return
 
-        # Интихоби 10 савол маҳз аз ҳамон Юнити интихобшуда
         shuffled_questions = random.sample(unit_words, min(10, len(unit_words)))
         
         all_words_pool = []
@@ -157,7 +155,6 @@ def send_next_quiz(chat_id):
     all_pool = state["all_pool"]
     
     if idx >= len(questions):
-        # Охири тест ва пешниҳоди тугмаҳои Юнитҳо барои идома додан
         bot.send_message(
             chat_id, 
             f"🏁 **Тест ба охир расид!**\n📊 Натиҷаи ту: **{state['score']}/{len(questions)}** хол.", 
@@ -198,4 +195,24 @@ def handle_poll_answer(answer):
     state = user_states.get(chat_id)
     
     if state and state.get("last_poll_id") == answer.poll_id:
-        options = state.get("options_list
+        options = state.get("options_list", [])
+        chosen_option_id = answer.option_ids[0]
+        chosen_translation = options[chosen_option_id]
+        
+        if chosen_translation == state.get("correct_answer"):
+            user_states[chat_id]["score"] += 1
+            
+        user_states[chat_id]["quiz_index"] += 1
+        
+        import threading
+        threading.Timer(1.0, send_next_quiz, args=[chat_id]).start()
+
+# Веб-сервер барои Render
+app = Flask(__name__)
+@app.route('/')
+def index(): return "Бот фаъол аст!"
+
+if __name__ == "__main__":
+    import threading
+    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))).start()
+    bot.polling(none_stop=True)
