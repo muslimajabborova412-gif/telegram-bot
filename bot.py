@@ -1,10 +1,8 @@
 import os
 import sys
 import random
-import time
 from telebot import types
 
-# Насби автоматии китобхонаҳо дар Render
 try:
     import telebot
     from flask import Flask
@@ -16,44 +14,34 @@ except ModuleNotFoundError:
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# 20 калимаи Unit 1 аз рӯи матни ту
-UNIT1_WORDS = [
-    {"word": "Agree", "translation": "Рози шудан", "example": "I agree with your opinion."},
-    {"word": "Alcohol", "translation": "Алкогол (нӯшокии спиртӣ)", "example": "Alcohol is bad for health."},
-    {"word": "Arrive", "translation": "Омадан, расидан", "example": "The train will arrive at 5 PM."},
-    {"word": "August", "translation": "Август", "example": "August is the eighth month of the year."},
-    {"word": "Boat", "translation": "Қаиқ, киштӣ", "example": "We rode a small boat on the lake."},
-    {"word": "Breakfast", "translation": "Нонушта", "example": "I had a healthy breakfast this morning."},
-    {"word": "Camera", "translation": "Камера, аксбардорак", "example": "He took a picture with his new camera."},
-    {"word": "Capital", "translation": "Пойтахт", "example": "Dushanbe is the capital of Tajikistan."},
-    {"word": "Catch", "translation": "Доштан, қапидан", "example": "Did you catch the ball?"},
-    {"word": "Duck", "translation": "Мурғобӣ", "example": "The duck is swimming in the pond."},
-    {"word": "Enjoy", "translation": "Ҳаловат бурдан", "example": "We enjoyed our time at the beach."},
-    {"word": "Invite", "translation": "Даъват кардан", "example": "They invited me to the party."},
-    {"word": "Love", "translation": "Дӯст доштан", "example": "I love my family very much."},
-    {"word": "Month", "translation": "Моҳ", "example": "January is the first month of the year."},
-    {"word": "Travel", "translation": "Саёҳат кардан", "example": "I want to travel to Japan."},
-    {"word": "Typical", "translation": "Одатӣ, маъмулӣ", "example": "It was a typical cold winter day."},
-    {"word": "Visit", "translation": "Хабар гирифтан", "example": "I will visit my grandparents tomorrow."},
-    {"word": "Weather", "translation": "Обу ҳаво", "example": "The weather is very hot today."},
-    {"word": "Week", "translation": "Ҳафта", "example": "There are seven days in a week."},
-    {"word": "Wine", "translation": "Шароб (вино)", "example": "Wine is made from grapes."}
-]
-
-# Барои нигоҳ доштани ҳолати корбарон (индекс ва холҳо)
 user_states = {}
+
+# Функсияи хондани калимаҳо аз файл
+def load_words():
+    words_dict = {}
+    if os.path.exists("words.txt"):
+        with open("words.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                if "|" in line:
+                    parts = line.strip().split("|")
+                    if len(parts) == 3:
+                        u, w, t = parts
+                        if u not in words_dict:
+                            words_dict[u] = []
+                        words_dict[u].append({"word": w, "translation": t})
+    return words_dict
 
 def get_main_keyboard():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton("📖 Луғат (Ҷудо-ҷудо)"), types.KeyboardButton("🎲 Оғози Тест (10 Савол)"))
+    markup.add(types.KeyboardButton("📖 Луғат"), types.KeyboardButton("🎲 Тест"))
     return markup
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     welcome_msg = (
-        "Салом! 👋 Хуш омадед ба боти омӯзишии **4000 Essential English Words**!\n\n"
+        "Салом! 👋 Хуш омадед ба боти **4000 Essential English Words**!\n\n"
         "👨‍💻 **Созанда:** Абдурраҳим\n"
-        "Яке аз тугмаҳоро пахш кун 👇"
+        "Интихоб кунед 👇"
     )
     bot.send_message(message.chat.id, welcome_msg, reply_markup=get_main_keyboard(), parse_mode="Markdown")
 
@@ -61,95 +49,85 @@ def send_welcome(message):
 def handle_text_buttons(message):
     chat_id = message.chat.id
     
-    if message.text == "📖 Луғат (Ҷудо-ҷудо)":
-        user_states[chat_id] = {"dict_index": 0}
-        show_word_with_typing_effect(chat_id, 0)
+    try:
+        bot.delete_message(chat_id, message.message_id - 1)
+    except:
+        pass
+
+    if message.text == "📖 Луғат":
+        markup = types.InlineKeyboardMarkup(row_width=3)
+        buttons = []
+        for i in range(1, 31):
+            buttons.append(types.InlineKeyboardButton(f"Unit {i}", callback_data=f"show_unit_{i}"))
+        markup.add(*buttons)
+        bot.send_message(chat_id, "📚 **Кадом Юнитро хондан мехоҳӣ?**", reply_markup=markup)
         
-    elif message.text == "🎲 Оғози Тест (10 Савол)":
-        # Оғози марафони 10 саволи омехта
-        shuffled_questions = random.sample(UNIT1_WORDS, min(10, len(UNIT1_WORDS)))
+    elif message.text == "🎲 Тест":
+        db = load_words()
+        all_combined = []
+        for unit_words in db.values():
+            all_combined.extend(unit_words)
+            
+        if not all_combined:
+            bot.send_message(chat_id, "❌ Базаи калимаҳо холӣ аст. Аввал файлро пур кунед.")
+            return
+
+        shuffled_questions = random.sample(all_combined, min(10, len(all_combined)))
         user_states[chat_id] = {
             "quiz_list": shuffled_questions,
             "quiz_index": 0,
             "score": 0,
-            "last_poll_id": None
+            "last_poll_id": None,
+            "correct_answer": "",
+            "all_pool": all_combined
         }
         bot.send_message(chat_id, "🚀 Тести омехта аз 10 савол оғоз шуд!")
         send_next_quiz(chat_id)
 
-# Функсияи нишон додани луғат бо эффекти навиштан (Аниматсия)
-def show_word_with_typing_effect(chat_id, index, message_id=None):
-    item = UNIT1_WORDS[index]
+@bot.callback_query_handler(func=lambda call: call.data.startswith('show_unit_'))
+def handle_unit_selection(call):
+    chat_id = call.message.chat.id
+    unit_number = call.data.split('_')[2]
+    db = load_words()
     
-    word_text = (
-        f"📖 **Калимаи {index + 1} аз {len(UNIT1_WORDS)}**\n\n"
-        f"🔤 **English:** {item['word']}\n"
-        f"🇹🇯 **Тарҷума:** {item['translation']}\n"
-        f"📝 _Мисол:_ {item['example']}"
-    )
-    
-    # Танзими тугмаҳои Баъдӣ ва Пештар дар зери худи луғат
-    markup = types.InlineKeyboardMarkup()
-    buttons = []
-    if index > 0:
-        buttons.append(types.InlineKeyboardButton("⬅️ Пештар", callback_data=f"prev_{index}"))
-    if index < len(UNIT1_WORDS) - 1:
-        buttons.append(types.InlineKeyboardButton("Баъдӣ ➡️", callback_data=f"next_{index}"))
-    markup.add(*buttons)
-
-    # Эффекти навиштани компютер (Typing animation)
-    if message_id is None:
-        msg = bot.send_message(chat_id, "💻 Дар ҳоли навишт .")
-        time.sleep(0.3)
-        bot.edit_message_text("💻 Дар ҳоли навишт ..", chat_id, msg.message_id)
-        time.sleep(0.3)
-        bot.edit_message_text("💻 Дар ҳоли навишт ...", chat_id, msg.message_id)
-        time.sleep(0.2)
-        bot.edit_message_text(word_text, chat_id, msg.message_id, reply_markup=markup, parse_mode="Markdown")
+    if unit_number in db and db[unit_number]:
+        response = f"📖 **Рӯйхати луғатҳои Unit {unit_number}:**\n\n"
+        for i, item in enumerate(db[unit_number], 1):
+            response += f"{i}. 🔤 **{item['word']}** = 🇹🇯 {item['translation']}\n"
     else:
-        try:
-            bot.edit_message_text(word_text, chat_id, message_id, reply_markup=markup, parse_mode="Markdown")
-        except:
-            pass
+        response = f"ℹ️ Калимаҳо барои **Unit {unit_number}** дар файли `words.txt` ёфт нашуданд!"
 
-# Суръатбахшии ивазшавии луғатҳо ҳангоми пахши тугмаи ҷудогона
-@bot.callback_query_handler(func=lambda call: call.data.startswith(('next_', 'prev_')))
-def handle_dict_navigation(call):
-    chat_id = call.message.chat_id
-    action, current_index = call.data.split('_')
-    current_index = int(current_index)
-    
-    new_index = current_index + 1 if action == 'next' else current_index - 1
-    
-    if 0 <= new_index < len(UNIT1_WORDS):
-        show_word_with_typing_effect(chat_id, new_index, call.message.message_id)
+    bot.edit_message_text(response, chat_id, call.message.message_id, parse_mode="Markdown")
     bot.answer_callback_query(call.id)
 
-# Функсияи фиристодани Саволҳо (Тест)
 def send_next_quiz(chat_id):
     state = user_states.get(chat_id)
-    if not state or "quiz_list" not in state:
+    if not state:
         return
         
     idx = state["quiz_index"]
     questions = state["quiz_list"]
+    all_pool = state["all_pool"]
     
     if idx >= len(questions):
-        # Агар 10 савол тамом шавад
-        bot.send_message(chat_id, f"🏁 **Тест тамом шуд!**\n📊 Натиҷаи ту: **{state['score']}/10** хол.", reply_markup=get_main_keyboard(), parse_mode="Markdown")
+        bot.send_message(chat_id, f"🏁 **Тест ба охир расид!**\n📊 Натиҷаи ту: **{state['score']}/10** хол.", reply_markup=get_main_keyboard(), parse_mode="Markdown")
         return
 
     correct_item = questions[idx]
-    question_text = f"Саволи {idx + 1}/10: Тарҷумаи дурусти '{correct_item['word']}' кадом аст?"
+    question_text = f"Саволи {idx + 1}/10: Тарҷумаи дурусти калимаи '{correct_item['word']}' кадом аст?"
     
-    wrong_options = [item['translation'] for item in UNIT1_WORDS if item['translation'] != correct_item['translation']]
+    wrong_options = [item['translation'] for item in all_pool if item['translation'] != correct_item['translation']]
+    wrong_options = list(set(wrong_options))
+    
     options = random.sample(wrong_options, min(3, len(wrong_options)))
     options.append(correct_item['translation'])
     random.shuffle(options)
     
     correct_index = options.index(correct_item['translation'])
     
-    # Фиристодани викторина
+    user_states[chat_id]["correct_answer"] = correct_item['translation']
+    user_states[chat_id]["options_list"] = options
+    
     poll_msg = bot.send_poll(
         chat_id=chat_id,
         question=question_text,
@@ -160,30 +138,25 @@ def send_next_quiz(chat_id):
     )
     user_states[chat_id]["last_poll_id"] = poll_msg.poll.id
 
-# Пайгирии ҷавобҳои тест
 @bot.poll_answer_handler(func=lambda answer: True)
 def handle_poll_answer(answer):
     user_id = answer.user.id
-    # Дар ин ҷо chat_id-ро аз рӯи сохтор муайян мекунем
-    chat_id = user_id 
+    chat_id = user_id
     state = user_states.get(chat_id)
     
     if state and state.get("last_poll_id") == answer.poll_id:
-        idx = state["quiz_index"]
-        correct_item = state["quiz_list"][idx]
+        options = state.get("options_list", [])
+        chosen_option_id = answer.option_ids[0]
+        chosen_translation = options[chosen_option_id]
         
-        # Санҷиши ҷавоб
-        if answer.option_ids[0] == state.get("correct_idx", 0): # Роҳи соддаи ҳисоб
-            pass 
-        
-        # Барои автоматӣ гузаштан ба саволи баъдӣ
+        if chosen_translation == state.get("correct_answer"):
+            user_states[chat_id]["score"] += 1
+            
         user_states[chat_id]["quiz_index"] += 1
-        # Агар корбар дуруст ҷавоб диҳад, хол илова мекунем (ин ҷо бот худаш дар экран нишон медиҳад)
-        # Барои осонӣ, ҳангоми пахши ҷавоб, саволи навбатӣ пас аз 1 сония меояд
+        
         import threading
-        threading.Timer(1.5, send_next_quiz, args=[chat_id]).start()
+        threading.Timer(1.0, send_next_quiz, args=[chat_id]).start()
 
-# Веб-сервер барои Render
 app = Flask(__name__)
 @app.route('/')
 def index(): return "Бот фаъол аст!"
