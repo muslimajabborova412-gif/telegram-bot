@@ -4,12 +4,11 @@ from flask import Flask
 from gtts import gTTS
 import threading
 
-# API TOKEN-ро аз танзимоти GitHub/Render гирифта мешавад
 bot = telebot.TeleBot(os.environ.get('API_TOKEN'))
 
 @bot.message_handler(commands=[f'unit{i}' for i in range(1, 31)])
 def handle_unit(message):
-    unit_num = message.text.replace('/unit', '')
+    unit_num = message.text.replace('/unit', '').strip() # Фосилаҳоро тоза мекунад
     
     try:
         with open("words.txt", "r", encoding="utf-8") as f:
@@ -23,14 +22,16 @@ def handle_unit(message):
     found = False
     
     for line in lines:
-        # Сатрҳоеро меёбад, ки бо рақами Юнит сар мешаванд
-        if line.startswith(f"{unit_num};"):
+        line = line.strip() # Ҳамаи фосилаҳои иловагиро аз ду тараф тоза мекунад
+        if not line: continue
+        
+        parts = line.split(';')
+        
+        # Ин ҷо мо рақами Юнитро бо рақами дар сатр буда муқоиса мекунем
+        if len(parts) >= 4 and parts[0].strip() == unit_num:
             found = True
-            parts = line.strip().split(';')
-            # Формат: Юнит;Калима;Тарҷума;Мисол
-            if len(parts) >= 4:
-                full_text += f"🔹 *{parts[1]}* — {parts[2]}\n📝 {parts[3]}\n\n"
-                audio_text += f"{parts[1]}. "
+            full_text += f"🔹 *{parts[1]}* — {parts[2]}\n📝 {parts[3]}\n\n"
+            audio_text += f"{parts[1]}. "
     
     if not found:
         bot.reply_to(message, f"Калимаҳои Юнити {unit_num} ёфт нашуданд.")
@@ -48,12 +49,10 @@ def handle_unit(message):
 def start(message):
     bot.reply_to(message, "Салом! Барои омӯзиш аз /unit1 то /unit30 истифода баред.")
 
-# Flask барои нигоҳ доштани бот дар Render
 app = Flask(__name__)
 @app.route('/')
 def home(): return "Bot is running!"
 
 if __name__ == '__main__':
-    # Бот дар як поток (thread) кор мекунад
     threading.Thread(target=lambda: bot.infinity_polling()).start()
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
