@@ -1,14 +1,20 @@
 import logging
+import os
+import random
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
-import random
 
-# Танзими логҳо
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+# Танзими логҳо барои дидани хатогиҳо дар Render
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
-# Функсия барои хондани калимаҳо
+# Функсия барои хондани калимаҳо аз файл
 def load_words(file_path):
     words = []
+    if not os.path.exists(file_path):
+        return None
     try:
         with open(file_path, 'r', encoding='utf-8') as file:
             for line in file:
@@ -18,14 +24,16 @@ def load_words(file_path):
                         'unit': parts[0], 'word': parts[1],
                         'translation': parts[2], 'example': parts[3]
                     })
-    except FileNotFoundError:
+    except Exception as e:
+        logging.error(f"Хатогӣ ҳангоми хондани файл: {e}")
         return None
     return words
 
+# Функсияи асосӣ барои фиристодани калима
 async def get_word(update: Update, context: ContextTypes.DEFAULT_TYPE, file_name: str, book_name: str):
     words = load_words(file_name)
     if not words:
-        await update.message.reply_text(f"Хатогӣ: Файли {book_name} ёфт нашуд ё холӣ аст.")
+        await update.message.reply_text(f"Хатогӣ: Файли {file_name} ёфт нашуд ё холӣ аст.")
         return
     
     word_obj = random.choice(words)
@@ -44,9 +52,18 @@ async def book2(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await get_word(update, context, 'book2.txt', 'Китоби 2 (4000 Words)')
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token('YOUR_TELEGRAM_BOT_TOKEN').build()
+    # Гирифтани токен аз Environment Variables дар Render
+    TOKEN = os.getenv('BOT_TOKEN')
     
-    application.add_handler(CommandHandler('book1', book1))
-    application.add_handler(CommandHandler('book2', book2))
-    
-    application.run_polling()
+    if not TOKEN:
+        print("Хатогӣ: BOT_TOKEN дар Render танзим нашудааст!")
+    else:
+        # Сохтани бот
+        application = ApplicationBuilder().token(TOKEN).build()
+        
+        # Илова кардани командаҳо
+        application.add_handler(CommandHandler('book1', book1))
+        application.add_handler(CommandHandler('book2', book2))
+        
+        print("Бот бомуваффақият оғоз шуд!")
+        application.run_polling()
