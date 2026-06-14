@@ -1,41 +1,41 @@
 import os
 import logging
 from flask import Flask, request
-from telegram import Update
-from telegram.ext import Application, CommandHandler, ContextTypes
+from telegram import Update, Bot
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-# Танзимоти лог
-logging.basicConfig(level=logging.INFO)
+# Танзимоти логҳо
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-TOKEN = os.getenv('BOT_TOKEN')
-PORT = int(os.environ.get('PORT', 8080))
+# Гирифтани токен аз Environment Variables
+TOKEN = os.getenv("BOT_TOKEN")
+# URL-и боти шумо дар Render (онро аз панели Render гиред)
+WEBHOOK_URL = "https://telegram-bot-hnav.onrender.com"
 
 app = Flask(__name__)
 
-# Истифодаи Application барои Webhook
-application = Application.builder().token(TOKEN).build()
+# Сохтани бот
+bot = Bot(token=TOKEN)
 
-# Командаҳо
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Бот фаъол аст!")
+    await update.message.reply_text("Салом! Хуш омадед ба боти расмии Абдурраҳим! 🚀")
 
+# Танзими Application
+application = ApplicationBuilder().token(TOKEN).build()
 application.add_handler(CommandHandler("start", start))
 
 @app.route(f"/{TOKEN}", methods=["POST"])
-def webhook():
-    # Телеграм маълумотро ба ин ҷо мефиристад
-    update = Update.de_json(request.get_json(force=True), application.bot)
-    application.bot.process_update(update)
-    return "ok", 200
+async def webhook():
+    update = Update.de_json(request.get_json(force=True), bot)
+    await application.process_update(update)
+    return "OK", 200
 
-@app.route('/')
+@app.route("/", methods=["GET"])
 def index():
-    return "Bot is running via Webhook!"
+    return "Бот кор мекунад!", 200
 
-if __name__ == '__main__':
-    # Webhook-ро ба Телеграм пайваст мекунем
-    # Дар ин ҷо 'https://nomi-loyhai-shumo.onrender.com' -ро нависед
-    webhook_url = f"https://telegram-bot-worker.onrender.com/{TOKEN}"
-    application.bot.set_webhook(webhook_url)
-    
-    app.run(host='0.0.0.0', port=PORT)
+if __name__ == "__main__":
+    # Насб кардани Webhook ҳангоми оғоз
+    import asyncio
+    asyncio.run(bot.set_webhook(f"{WEBHOOK_URL}/{TOKEN}"))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 10000)))
