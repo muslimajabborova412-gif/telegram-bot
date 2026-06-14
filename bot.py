@@ -1,65 +1,52 @@
-import os
-import telebot
-from telebot import types
-from gtts import gTTS
-import threading
-from flask import Flask
+import logging
+from telegram import Update
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler
+import random
 
-# API TOKEN аз Environment гирифта мешавад
-bot = telebot.TeleBot(os.environ.get('API_TOKEN'))
+# Танзими логҳо
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    markup = types.InlineKeyboardMarkup(row_width=3)
-    buttons = [types.InlineKeyboardButton(f"U{i}", callback_data=f"unit_{i}") for i in range(1, 31)]
-    markup.add(*buttons)
-    bot.reply_to(message, "Салом! Барои омӯзиш Юнит-ро интихоб кунед:", reply_markup=markup)
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("unit_"))
-def handle_unit(call):
-    unit_num = call.data.split("_")[1]
-    
+# Функсия барои хондани калимаҳо
+def load_words(file_path):
+    words = []
     try:
-        with open("words.txt", "r", encoding="utf-8") as f:
-            lines = f.readlines()
-    except:
-        bot.answer_callback_query(call.id, "Файл ёфт нашуд!")
-        return
-        
-    full_text = f"📚 **Юнити {unit_num}**\n\n"
-    audio_text = ""
-    found = False
-    
-    for line in lines:
-        if line.strip().startswith(f"{unit_num};"):
-            found = True
-            parts = line.strip().split(';')
-            # Формат: Юнит;Калима;Тарҷума;Мисол
-            if len(parts) >= 4:
-                full_text += f"🔹 *{parts[1]}* — {parts[2]}\n📝 {parts[3]}\n\n"
-                # Танҳо калима ва мисол, бе калимаҳои Word ва Example
-                audio_text += f"{parts[1]}. {parts[3]}. "
-    
-    if found:
-        bot.send_message(call.message.chat.id, full_text, parse_mode="Markdown")
-        
-        # Эҷоди аудио бо суръати оҳиста (slow=True)
-        try:
-            tts = gTTS(text=audio_text, lang='en', slow=True)
-            tts.save("unit.mp3")
-            with open("unit.mp3", "rb") as audio:
-                bot.send_voice(call.message.chat.id, audio)
-            os.remove("unit.mp3")
-        except Exception:
-            bot.send_message(call.message.chat.id, "Хатогӣ дар эҷоди аудио.")
-    else:
-        bot.answer_callback_query(call.id, "Калимаҳо ёфт нашуданд.")
+        with open(file_path, 'r', encoding='utf-8') as file:
+            for line in file:
+                parts = line.strip().split(';')
+                if len(parts) == 4:
+                    words.append({
+                        'unit': parts[0], 'word': parts[1],
+                        'translation': parts[2], 'example': parts[3]
+                    })
+    except FileNotFoundError:
+        return None
+    return words
 
-# Барои он ки Render ботро фаъол нигоҳ дорад
-app = Flask(__name__)
-@app.route('/')
-def home(): return "Bot is running!"
+async def get_word(update: Update, context: ContextTypes.DEFAULT_TYPE, file_name: str, book_name: str):
+    words = load_words(file_name)
+    if not words:
+        await update.message.reply_text(f"Хатогӣ: Файли {book_name} ёфт нашуд ё холӣ аст.")
+        return
+    
+    word_obj = random.choice(words)
+    response = (f"📚 **{book_name}**\n"
+                f"📖 **Юнит:** {word_obj['unit']}\n"
+                f"🔤 **Калима:** {word_obj['word']}\n"
+                f"🇺🇿 **Тарҷума:** {word_obj['translation']}\n"
+                f"📝 **Мисол:** {word_obj['example']}")
+    await update.message.reply_text(response, parse_mode='Markdown')
+
+# Командаҳо
+async def book1(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await get_word(update, context, 'book1.txt', 'Китоби 1 (4000 Words)')
+
+async def book2(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await get_word(update, context, 'book2.txt', 'Китоби 2 (4000 Words)')
 
 if __name__ == '__main__':
-    threading.Thread(target=lambda: bot.infinity_polling()).start()
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    application = ApplicationBuilder().token('YOUR_TELEGRAM_BOT_TOKEN').build()
+    
+    application.add_handler(CommandHandler('book1', book1))
+    application.add_handler(CommandHandler('book2', book2))
+    
+    application.run_polling()
