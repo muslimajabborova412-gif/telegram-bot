@@ -15,59 +15,26 @@ except ModuleNotFoundError:
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Базаи калимаҳо бо мисолҳо аз рӯи китоби ту
-DATA_BASE = {
-    "1": [
-        {"word": "Agree", "translation": "Рози шудан", "example": "I agree with your opinion."},
-        {"word": "Alcohol", "translation": "Алкогол (нӯшокии спиртӣ)", "example": "Alcohol is bad for health."},
-        {"word": "Arrive", "translation": "Омадан, расидан", "example": "The train will arrive at 5 PM."},
-        {"word": "August", "translation": "Август", "example": "August is the eighth month of the year."},
-        {"word": "Boat", "translation": "Қаиқ, киштӣ", "example": "We rode a small boat on the lake."},
-        {"word": "Breakfast", "translation": "Нонушта", "example": "I had a healthy breakfast this morning."},
-        {"word": "Camera", "translation": "Camera", "example": "He took a picture with his new camera."},
-        {"word": "Capital", "translation": "Пойтахт", "example": "Dushanbe is the capital of Tajikistan."},
-        {"word": "Catch", "translation": "Доштан, қапидан", "example": "Did you catch the ball?"},
-        {"word": "Duck", "translation": "Мурғобӣ", "example": "The duck is swimming in the pond."},
-        {"word": "Enjoy", "translation": "Ҳаловат бурдан", "example": "We enjoyed our time at the beach."},
-        {"word": "Invite", "translation": "Даъват кардан", "example": "They invited me to the party."},
-        {"word": "Love", "translation": "Дӯст доштан", "example": "I love my family very much."},
-        {"word": "Month", "translation": "Моҳ", "example": "January is the first month of the year."},
-        {"word": "Travel", "translation": "Саёҳат кардан", "example": "I want to travel to Japan."},
-        {"word": "Typical", "translation": "Одатӣ, маъмулӣ", "example": "It was a typical cold winter day."},
-        {"word": "Visit", "translation": "Хабар гирифтан", "example": "I will visit my grandparents tomorrow."},
-        {"word": "Weather", "translation": "Обу ҳаво", "example": "The weather is very hot today."},
-        {"word": "Week", "translation": "Ҳафта", "example": "There are seven days in a week."},
-        {"word": "Wine", "translation": "Шароб (вино)", "example": "Wine is made from grapes."}
-    ],
-    "2": [
-        {"word": "Adventure", "translation": "Саргузашт", "example": "They went on a wild adventure in the jungle."},
-        {"word": "Approach", "translation": "Наздик шудан", "example": "The boy approached the barking dog carefully."},
-        {"word": "Carefully", "translation": "Боэҳтиёт", "example": "Please carry the glasses carefully."},
-        {"word": "Chemical", "translation": "Моддаи химиявӣ", "example": "The scientist mixed the chemicals together."},
-        {"word": "Create", "translation": "Сохтан, эҷод кардан", "example": "She created a beautiful painting."},
-        {"word": "Evil", "translation": "Бадӣ, ҷоҳил", "example": "The evil witch cursed the castle."},
-        {"word": "Experiment", "translation": "Таҷриба, озмоиш", "example": "We did an experiment in science class."},
-        {"word": "Kill", "translation": "Куштан", "example": "The hunter killed a deer for food."},
-        {"word": "Laboratory", "translation": "Лаборатория", "example": "They work in a high-tech laboratory."},
-        {"word": "Laugh", "translation": "Ханда", "example": "His funny joke made everyone laugh."}
-    ],
-    "3": [
-        {"word": "Alien", "translation": "Мавҷудоти бегона", "example": "The alien arrived in a flying saucer."},
-        {"word": "Among", "translation": "Дар байни", "example": "There is a red apple among the green ones."},
-        {"word": "Chart", "translation": "Ҷадвал, диаграмма", "example": "We used a chart to track our sales progress."},
-        {"word": "Cloud", "translation": "Абр", "example": "Look at that white cloud in the blue sky."},
-        {"word": "Describe", "translation": "Тавсиф кардан", "example": "Can you describe what the man looked like?"},
-        {"word": "Fail", "translation": "Ноком шудан", "example": "If you do not study, you might fail the test."},
-        {"word": "Grade", "translation": "Баҳо, синф", "example": "He got a good grade on his English exam."},
-        {"word": "Library", "translation": "Китобхона", "example": "I go to the library to study quietly."},
-        {"word": "Planet", "translation": "Сайёра", "example": "Earth is the third planet from the sun."},
-        {"word": "Solve", "translation": "Ҳал кардан", "example": "She managed to solve the hard math problem."}
-    ]
-}
-
 user_states = {}
 
-# Тугмаҳои инлайнии Юнитҳо
+# Функсияи касбӣ барои хондани базаи калимаҳо аз файли words.txt
+def load_words():
+    words_dict = {}
+    if os.path.exists("words.txt"):
+        with open("words.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or "|" not in line:
+                    continue
+                parts = line.split("|")
+                if len(parts) == 4:
+                    unit, word, trans, ex = parts
+                    if unit not in words_dict:
+                        words_dict[unit] = []
+                    words_dict[unit].append({"word": word, "translation": trans, "example": ex})
+    return words_dict
+
+# Эҷоди тугмаҳои инлайнии Юнитҳо аз 1 то 30 (Танҳо дар даруни чат)
 def get_inline_units_keyboard():
     markup = types.InlineKeyboardMarkup(row_width=3)
     buttons = []
@@ -76,7 +43,7 @@ def get_inline_units_keyboard():
     markup.add(*buttons)
     return markup
 
-# Тугмаи оғози тест
+# Тугмаи оғози тест барои ҳамон Юнит
 def get_inline_quiz_keyboard(unit_num):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(f"🎲 Оғози Тести Юнит {unit_num}", callback_data=f"start_quiz_{unit_num}"))
@@ -90,7 +57,7 @@ def send_welcome(message):
         "👨‍💻 **Созанда:** Абдурраҳим\n\n"
         "📚 **Кадом Юнитро хондан мехоҳӣ? Интихоб кун:**"
     )
-    # Истифодаи ReplyKeyboardRemove барои он ки ягон тугмаи кӯҳна дар поён намонад
+    # Тоза кардани клавиатураи оддии поёни экран (агар монда бошад)
     bot.send_message(message.chat.id, welcome_msg, reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, "Интихоби Юнит 👇", reply_markup=get_inline_units_keyboard())
 
@@ -98,18 +65,19 @@ def send_welcome(message):
 def handle_inline_buttons(call):
     chat_id = call.message.chat.id
     data = call.data
+    db = load_words()
 
     if data.startswith("list_unit_"):
         unit_number = data.split("_")[2]
         
-        if unit_number in DATA_BASE and DATA_BASE[unit_number]:
+        if unit_number in db and db[unit_number]:
             response = f"📖 **Рӯйхати луғатҳои Unit {unit_number} (Бо мисолҳо):**\n\n"
-            for i, item in enumerate(DATA_BASE[unit_number], 1):
-                response += f"{i}. 🔤 **{item['word']}** = 🇹🇯 {item['translation']}\n📝 _Мисол:_ {item['example']}\n\n"
+            for i, item in enumerate(db[unit_number], 1):
+                response += f"{i}. 🔤 **{item['word']}** = 🇹🇯 {item['translation']}\n   📝 _Мисол:_ {item['example']}\n\n"
             
             bot.send_message(chat_id, response, parse_mode="Markdown", reply_markup=get_inline_quiz_keyboard(unit_number))
         else:
-            bot.send_message(chat_id, f"ℹ️ Калимаҳо бо мисолҳояшон барои **Unit {unit_number}** ба наздикӣ илова карда мешаванд!", reply_markup=get_inline_units_keyboard())
+            bot.send_message(chat_id, f"ℹ️ Калимаҳо бо мисолҳояшон барои **Unit {unit_number}** дар файли `words.txt` ёфт нашуданд!", reply_markup=get_inline_units_keyboard())
         
         bot.answer_callback_query(call.id)
 
@@ -119,7 +87,7 @@ def handle_inline_buttons(call):
 
     elif data.startswith("start_quiz_"):
         unit_number = data.split("_")[2]
-        unit_words = DATA_BASE.get(unit_number, [])
+        unit_words = db.get(unit_number, [])
         
         if not unit_words:
             bot.send_message(chat_id, f"❌ Дар Unit {unit_number} калима барои тест ёфт нашуд.")
@@ -129,7 +97,7 @@ def handle_inline_buttons(call):
         shuffled_questions = random.sample(unit_words, min(10, len(unit_words)))
         
         all_words_pool = []
-        for uw in DATA_BASE.values():
+        for uw in db.values():
             all_words_pool.extend(uw)
 
         user_states[chat_id] = {
@@ -141,7 +109,7 @@ def handle_inline_buttons(call):
             "all_pool": all_words_pool
         }
         
-        bot.send_message(chat_id, f"🚀 Тести махсус аз **Юнит {unit_number}** оғоз шуд (10 Савол)!")
+        bot.send_message(chat_id, f"🚀 Тести махсус аз **Юнит {unit_number}** оғоз шуд ({len(shuffled_questions)} Савол)!")
         send_next_quiz(chat_id)
         bot.answer_callback_query(call.id)
 
