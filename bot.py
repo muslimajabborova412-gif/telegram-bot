@@ -1,65 +1,82 @@
 import os
-import requests
-from flask import Flask, request
-import telebot
+import sys
+import random
 
-TOKEN = '8996159898:AAH4t65DElUHgVtQrx5Ck0j8LyBVuWqPmwQ'
-WEBHOOK_URL = 'https://telegram-bot-quiz-3cqc.onrender.com'
+# Насби автоматии китобхонаҳо дар Render
+try:
+    import telebot
+    from flask import Flask
+except ModuleNotFoundError:
+    os.system(f'"{sys.executable}" -m pip install pyTelegramBotAPI Flask')
+    import telebot
+    from flask import Flask
 
-bot = telebot.TeleBot(TOKEN)
-app = Flask(__name__)
+BOT_TOKEN = os.environ.get('BOT_TOKEN')
+bot = telebot.TeleBot(BOT_TOKEN)
 
-@app.route('/' + TOKEN, methods=['POST'])
-def getMessage():
-    json_string = request.get_data().decode('utf-8')
-    update = telebot.types.Update.de_json(json_string)
-    bot.process_new_updates([update])
-    return "!", 200
-
-@app.route('/')
-def webhook_setup():
-    bot.remove_webhook()
-    status = bot.set_webhook(url=WEBHOOK_URL + '/' + TOKEN)
-    return f"Webhook status: {status} 🚀"
+# Базаи калимаҳо аз китоби 4000 Essential English Words
+WORDS_DATABASE = [
+    {"word": "Agree", "translation": "Рози шудан", "example": "I agree with your opinion."},
+    {"word": "Arrive", "translation": "Омадан, расидан", "example": "The train will arrive at 5 PM."},
+    {"word": "Attack", "translation": "Ҳуҷум кардан", "example": "The dog attacked the stranger."},
+    {"word": "Bottom", "translation": "Таг, поён", "example": "The coins were at the bottom of the sea."},
+    {"word": "Clever", "translation": "Боҳуш, зирак", "example": "The clever boy solved the puzzle."},
+    {"word": "Cruel", "translation": "Бераҳм, золим", "example": "The cruel man shouted at the kitten."},
+    {"word": "Hide", "translation": "Пинҳон шудан", "example": "The children like to hide in the closet."},
+    {"word": "Hunt", "translation": "Шикор кардан", "example": "Cats like to hunt mice."},
+    {"word": "Lot", "translation": "Хеле бисёр", "example": "There are a lot of apples on the tree."},
+    {"word": "Middle", "translation": "Муҳит, байн, марказ", "example": "He stood in the middle of the room."}
+]
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
-    bot.reply_to(message, "Салом! Ссылкаи YouTube-ро ба ман фиристед, ман онро ба MP3 табдил медиҳам! 🎧😎")
+    welcome_msg = (
+        "Салом, хуш омадед! 👋🇬🇧\n\n"
+        "Ин бот барои омӯхтани **4000 Essential English Words** сохта шудааст!\n"
+        "👨‍💻 **Созанда (Developer):** Абдурраҳим\n\n"
+        "Фармонҳои мавҷуда:\n"
+        "📖 /word - Гирифтани калимаи тасодуфӣ бо тарҷума\n"
+        "🎲 /quiz - Санҷиши дониш (Тест)"
+    )
+    bot.reply_to(message, welcome_msg, parse_mode="Markdown")
 
-@bot.message_handler(func=lambda message: True)
-def download_audio(message):
-    url = message.text
-    if "youtube.com" in url or "youtu.be" in url:
-        status_msg = bot.reply_to(message, "Дар ҳоли коркард ва табдили мусиқӣ... Лутфан сабр кунед. ⏳🎧")
-        
-        try:
-            # Истифодаи сервери кушодаи дуюми содда барои гирифтани ссылкаи MP3
-            api_url = f"https://api.v02.api-host.info/ytmp3?url={url}"
-            response = requests.get(api_url, timeout=30).json()
-            
-            if response.get("status") == "success" or "download_url" in response:
-                audio_url = response.get("download_url") or response.get("url")
-                title = response.get("title", "Music")
-                
-                # Фиристодани мусиқӣ мустақиман тавассути ссылка ба Telegram
-                bot.send_audio(message.chat.id, audio_url, caption=f"🎵 **{title}**\n\nТайёр шуд! 😉")
-                bot.delete_message(message.chat.id, status_msg.message_id)
-            else:
-                # Агар сервери аввал хато диҳад, бо усули дуюм кӯшиш мекунад
-                api_url_2 = f"https://api.boxapi.xyz/youtube/v1/audio?url={url}"
-                res2 = requests.get(api_url_2, timeout=30).json()
-                audio_url = res2.get("url")
-                if audio_url:
-                    bot.send_audio(message.chat.id, audio_url, caption="Мусиқии шумо тайёр шуд! 🎵")
-                    bot.delete_message(message.chat.id, status_msg.message_id)
-                else:
-                    bot.edit_message_text("Мутаассифона, серверҳо дар айни замон банд мебошанд. Лутфан дертар кӯшиш кунед. 🔄", message.chat.id, status_msg.message_id)
-                    
-        except Exception as e:
-            bot.edit_message_text(f"Хатогии техникӣ: Сервер ҷавоб надод. Лутфан дубора кӯшиш кунед.", message.chat.id, status_msg.message_id)
-    else:
-        bot.reply_to(message, "Лутфан ссылкаи дурусти YouTube-ро фиристед! ❌")
+@bot.message_handler(commands=['word'])
+def send_word(message):
+    item = random.choice(WORDS_DATABASE)
+    text = (
+        f"🔤 **Калима:** {item['word']}\n"
+        f"🇹🇯 **Тарҷума:** {item['translation']}\n"
+        f"📝 **Мисол:** _{item['example']}_"
+    )
+    bot.send_message(message.chat.id, text, parse_mode="Markdown")
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+@bot.message_handler(commands=['quiz'])
+def send_quiz(message):
+    correct_item = random.choice(WORDS_DATABASE)
+    question = f"Тарҷумаи дурусти калимаи '{correct_item['word']}' кадом аст?"
+    
+    wrong_options = [item['translation'] for item in WORDS_DATABASE if item['translation'] != correct_item['translation']]
+    options = random.sample(wrong_options, 3)
+    options.append(correct_item['translation'])
+    random.shuffle(options)
+    
+    correct_index = options.index(correct_item['translation'])
+    
+    bot.send_poll(
+        chat_id=message.chat.id,
+        question=question,
+        options=options,
+        type='quiz',
+        correct_option_id=correct_index,
+        is_anonymous=False
+    )
+
+# Веб-сервер барои Render
+app = Flask(__name__)
+@app.route('/')
+def index(): return "Бот фаъол аст!"
+
+if __name__ == "__main__":
+    import threading
+    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))).start()
+    bot.polling(none_stop=True)
