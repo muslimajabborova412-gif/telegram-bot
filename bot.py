@@ -1,58 +1,43 @@
 import os
 import telebot
-from flask import Flask
-from gtts import gTTS
-import threading
+from telebot import types
+import random
 
 bot = telebot.TeleBot(os.environ.get('API_TOKEN'))
 
-@bot.message_handler(commands=[f'unit{i}' for i in range(1, 31)])
-def handle_unit(message):
-    unit_num = message.text.replace('/unit', '').strip() # Фосилаҳоро тоза мекунад
-    
-    try:
-        with open("words.txt", "r", encoding="utf-8") as f:
-            lines = f.readlines()
-    except FileNotFoundError:
-        bot.reply_to(message, "Файли words.txt ёфт нашуд!")
-        return
-        
-    full_text = f"📚 **Юнити {unit_num}**\n\n"
-    audio_text = ""
-    found = False
-    
-    for line in lines:
-        line = line.strip() # Ҳамаи фосилаҳои иловагиро аз ду тараф тоза мекунад
-        if not line: continue
-        
-        parts = line.split(';')
-        
-        # Ин ҷо мо рақами Юнитро бо рақами дар сатр буда муқоиса мекунем
-        if len(parts) >= 4 and parts[0].strip() == unit_num:
-            found = True
-            full_text += f"🔹 *{parts[1]}* — {parts[2]}\n📝 {parts[3]}\n\n"
-            audio_text += f"{parts[1]}. "
-    
-    if not found:
-        bot.reply_to(message, f"Калимаҳои Юнити {unit_num} ёфт нашуданд.")
-    else:
-        bot.send_message(message.chat.id, full_text, parse_mode="Markdown")
-        
-        # Эҷоди аудио
-        tts = gTTS(text=audio_text, lang='en')
-        tts.save("unit.mp3")
-        with open("unit.mp3", "rb") as audio:
-            bot.send_voice(message.chat.id, audio)
-        os.remove("unit.mp3")
+# Функция барои хондани калимаҳо
+def get_words():
+    with open("words.txt", "r", encoding="utf-8") as f:
+        return [line.strip().split(';') for line in f if line.strip()]
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    bot.reply_to(message, "Салом! Барои омӯзиш аз /unit1 то /unit30 истифода баред.")
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton("📋 Омӯзиш", callback_data="learn"),
+               types.InlineKeyboardButton("❓ Тест", callback_data="quiz"))
+    bot.reply_to(message, "Салом! Якеро интихоб кунед:", reply_markup=markup)
 
-app = Flask(__name__)
-@app.route('/')
-def home(): return "Bot is running!"
+@bot.callback_query_handler(func=lambda call: True)
+def callback(call):
+    if call.data == "learn":
+        # Нишон додани тугмаҳои Юнитҳо барои омӯзиш
+        markup = types.InlineKeyboardMarkup(row_width=3)
+        buttons = [types.InlineKeyboardButton(f"U{i}", callback_data=f"u_{i}") for i in range(1, 31)]
+        markup.add(*buttons)
+        bot.edit_message_text("Кадом Юнит-ро омӯхтан мехоҳед?", call.message.chat.id, call.message.message_id, reply_markup=markup)
+    
+    elif call.data.startswith("u_"):
+        unit_num = call.data.split("_")[1]
+        words = get_words()
+        text = f"📚 **Юнити {unit_num}**:\n" + "\n".join([f"🔹 {w[1]} — {w[2]}" for w in words if w[0] == unit_num])
+        bot.send_message(call.message.chat.id, text, parse_mode="Markdown")
 
-if __name__ == '__main__':
-    threading.Thread(target=lambda: bot.infinity_polling()).start()
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    elif call.data == "quiz":
+        # Тест: гирифтани калимаи тасодуфӣ
+        words = get_words()
+        word = random.choice(words)
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton(word[2], callback_data=f"ans_{word[1]}")) # Ин ҷо логикаи санҷиш илова мешавад
+        bot.send_message(call.message.chat.id, f"Калимаи '{word[1]}' чӣ маъно дорад?", reply_markup=markup)
+
+# Ин код заминаи тест аст.
