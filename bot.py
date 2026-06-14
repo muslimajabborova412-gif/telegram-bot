@@ -28,3 +28,19 @@ def send_word_with_audio(chat_id, item):
 # Ба ҷои bot.send_message... барои ҳар як калима инро даъват мекунем:
 # for item in db[unit_number]:
 #     send_word_with_audio(chat_id, item)
+from flask import Flask
+import threading
+
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run_bot():
+    bot.infinity_polling()
+
+if __name__ == '__main__':
+    # Бот дар як поток (thread) ва Flask дар асосӣ
+    threading.Thread(target=run_bot).start()
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
