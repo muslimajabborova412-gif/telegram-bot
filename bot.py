@@ -5,6 +5,7 @@ from gtts import gTTS
 import threading
 from flask import Flask
 
+# API TOKEN аз Environment гирифта мешавад
 bot = telebot.TeleBot(os.environ.get('API_TOKEN'))
 
 @bot.message_handler(commands=['start'])
@@ -36,23 +37,25 @@ def handle_unit(call):
             # Формат: Юнит;Калима;Тарҷума;Мисол
             if len(parts) >= 4:
                 full_text += f"🔹 *{parts[1]}* — {parts[2]}\n📝 {parts[3]}\n\n"
-                audio_text += f"Word: {parts[1]}. Example: {parts[3]}. "
+                # Танҳо калима ва мисол, бе калимаҳои Word ва Example
+                audio_text += f"{parts[1]}. {parts[3]}. "
     
     if found:
         bot.send_message(call.message.chat.id, full_text, parse_mode="Markdown")
         
-        # Эҷоди аудио
+        # Эҷоди аудио бо суръати оҳиста (slow=True)
         try:
-            tts = gTTS(text=audio_text, lang='en')
+            tts = gTTS(text=audio_text, lang='en', slow=True)
             tts.save("unit.mp3")
             with open("unit.mp3", "rb") as audio:
                 bot.send_voice(call.message.chat.id, audio)
             os.remove("unit.mp3")
-        except Exception as e:
-            bot.send_message(call.message.chat.id, "Хатогӣ дар эҷоди аудио. Лутфан, дертар кӯшиш кунед.")
+        except Exception:
+            bot.send_message(call.message.chat.id, "Хатогӣ дар эҷоди аудио.")
     else:
         bot.answer_callback_query(call.id, "Калимаҳо ёфт нашуданд.")
 
+# Барои он ки Render ботро фаъол нигоҳ дорад
 app = Flask(__name__)
 @app.route('/')
 def home(): return "Bot is running!"
