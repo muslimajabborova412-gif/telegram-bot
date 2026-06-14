@@ -15,202 +15,137 @@ except ModuleNotFoundError:
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Базаи калимаҳо аз рӯи Юнитҳо (Маҳз аз рӯи китоби ту)
+# Базаи калимаҳо бо мисолҳо аз рӯи китоби ту
 DATA_BASE = {
     "1": [
-        {"word": "Agree", "translation": "Рози шудан"},
-        {"word": "Alcohol", "translation": "Алкогол (нӯшокии спиртӣ)"},
-        {"word": "Arrive", "translation": "Омадан, расидан"},
-        {"word": "August", "translation": "Август"},
-        {"word": "Boat", "translation": "Қаиқ, киштӣ"},
-        {"word": "Breakfast", "translation": "Нонушта"},
-        {"word": "Camera", "translation": "Камера, аксбардорак"},
-        {"word": "Capital", "translation": "Пойтахт"},
-        {"word": "Catch", "translation": "Доштан, қапидан"},
-        {"word": "Duck", "translation": "Мурғобӣ"},
-        {"word": "Enjoy", "translation": "Ҳаловат бурдан"},
-        {"word": "Invite", "translation": "Даъват кардан"},
-        {"word": "Love", "translation": "Дӯст доштан"},
-        {"word": "Month", "translation": "Моҳ"},
-        {"word": "Travel", "translation": "Саёҳат кардан"},
-        {"word": "Typical", "translation": "Одатӣ, маъмулӣ"},
-        {"word": "Visit", "translation": "Хабар гирифтан"},
-        {"word": "Weather", "translation": "Обу ҳаво"},
-        {"word": "Week", "translation": "Ҳафта"},
-        {"word": "Wine", "translation": "Шароб (вино)"}
+        {"word": "Agree", "translation": "Рози шудан", "example": "I agree with your opinion."},
+        {"word": "Alcohol", "translation": "Алкогол (нӯшокии спиртӣ)", "example": "Alcohol is bad for health."},
+        {"word": "Arrive", "translation": "Омадан, расидан", "example": "The train will arrive at 5 PM."},
+        {"word": "August", "translation": "Август", "example": "August is the eighth month of the year."},
+        {"word": "Boat", "translation": "Қаиқ, киштӣ", "example": "We rode a small boat on the lake."},
+        {"word": "Breakfast", "translation": "Нонушта", "example": "I had a healthy breakfast this morning."},
+        {"word": "Camera", "translation": "Камера, аксбардорак", "example": "He took a picture with his new camera."},
+        {"word": "Capital", "translation": "Пойтахт", "example": "Dushanbe is the capital of Tajikistan."},
+        {"word": "Catch", "translation": "Доштан, қапидан", "example": "Did you catch the ball?"},
+        {"word": "Duck", "translation": "Мурғобӣ", "example": "The duck is swimming in the pond."},
+        {"word": "Enjoy", "translation": "Ҳаловат бурдан", "example": "We enjoyed our time at the beach."},
+        {"word": "Invite", "translation": "Даъват кардан", "example": "They invited me to the party."},
+        {"word": "Love", "translation": "Дӯст доштан", "example": "I love my family very much."},
+        {"word": "Month", "translation": "Моҳ", "example": "January is the first month of the year."},
+        {"word": "Travel", "translation": "Саёҳат кардан", "example": "I want to travel to Japan."},
+        {"word": "Typical", "translation": "Одатӣ, маъмулӣ", "example": "It was a typical cold winter day."},
+        {"word": "Visit", "translation": "Хабар гирифтан", "example": "I will visit my grandparents tomorrow."},
+        {"word": "Weather", "translation": "Обу ҳаво", "example": "The weather is very hot today."},
+        {"word": "Week", "translation": "Ҳафта", "example": "There are seven days in a week."},
+        {"word": "Wine", "translation": "Шароб (вино)", "example": "Wine is made from grapes."}
     ],
     "2": [
-        {"word": "Adventure", "translation": "Саргузашт"},
-        {"word": "Approach", "translation": "Наздик шудан"},
-        {"word": "Carefully", "translation": "Боэҳтиёт"},
-        {"word": "Chemical", "translation": "Моддаи chemical"},
-        {"word": "Create", "translation": "Сохтан, эҷод кардан"},
-        {"word": "Evil", "translation": "Бадӣ, ҷоҳил"},
-        {"word": "Experiment", "translation": "Таҷриба, озмоиш"},
-        {"word": "Kill", "translation": "Куштан"},
-        {"word": "Laboratory", "translation": "Лаборатория"},
-        {"word": "Laugh", "translation": "Ханда"}
+        {"word": "Adventure", "translation": "Саргузашт", "example": "They went on a wild adventure in the jungle."},
+        {"word": "Approach", "translation": "Наздик шудан", "example": "The boy approached the barking dog carefully."},
+        {"word": "Carefully", "translation": "Боэҳтиёт", "example": "Please carry the glasses carefully."},
+        {"word": "Chemical", "translation": "Моддаи химиявӣ", "example": "The scientist mixed the chemicals together."},
+        {"word": "Create", "translation": "Сохтан, эҷод кардан", "example": "She created a beautiful painting."},
+        {"word": "Evil", "translation": "Бадӣ, ҷоҳил", "example": "The evil witch cursed the castle."},
+        {"word": "Experiment", "translation": "Таҷриба, озмоиш", "example": "We did an experiment in science class."},
+        {"word": "Kill", "translation": "Куштан", "example": "The hunter killed a deer for food."},
+        {"word": "Laboratory", "translation": "Лаборатория", "example": "They work in a high-tech laboratory."},
+        {"word": "Laugh", "translation": "Ханда", "example": "His funny joke made everyone laugh."}
     ],
     "3": [
-        {"word": "Alien", "translation": "Мавҷудоти бегона"},
-        {"word": "Among", "translation": "Дар байни"},
-        {"word": "Chart", "translation": "Ҷадвал, диаграмма"},
-        {"word": "Cloud", "translation": "Абр"},
-        {"word": "Describe", "translation": "Тавсиф кардан"},
-        {"word": "Fail", "translation": "Ноком шудан"},
-        {"word": "Grade", "translation": "Баҳо, синф"},
-        {"word": "Library", "translation": "Китобхона"},
-        {"word": "Planet", "translation": "Сайёра"},
-        {"word": "Solve", "translation": "Ҳал кардан"}
-    ],
-    "4": [
-        {"word": "Avoid", "translation": "Дурӣ ҷӯстан"},
-        {"word": "Behave", "translation": "Рафтори хуб кардан"},
-        {"word": "Calm", "translation": "Ором"},
-        {"word": "Concern", "translation": "Хавотирӣ"},
-        {"word": "Expect", "translation": "Умед доштан"},
-        {"word": "Habit", "translation": "Одат"},
-        {"word": "Patient", "translation": "Босабр"},
-        {"word": "Positive", "translation": "Мусбат"},
-        {"word": "Punish", "translation": "Ҷазо додан"},
-        {"word": "Village", "translation": "Деҳа"}
-    ],
-    "5": [
-        {"word": "Active", "translation": "Фаъол"},
-        {"word": "Adult", "translation": "Калонсол"},
-        {"word": "Age", "translation": "Синну сол"},
-        {"word": "Balance", "translation": "Мувозинат"},
-        {"word": "Bike", "translation": "Велосипед"},
-        {"word": "Choose", "translation": "Интихоб кардан"},
-        {"word": "Doctor", "translation": "Духтур"},
-        {"word": "Football", "translation": "Футбол"},
-        {"word": "Game", "translation": "Бозӣ"},
-        {"word": "Heart", "translation": "Дил"}
-    ],
-    "6": [
-        {"word": "Apart", "translation": "Ҷудо, дур аз ҳам"},
-        {"word": "Bilingual", "translation": "Дузабона"},
-        {"word": "Completely", "translation": "Пурра, комилан"},
-        {"word": "Mirror", "translation": "Оина"},
-        {"word": "Natural", "translation": "Табиӣ"},
-        {"word": "Sport", "translation": "Варзиш"},
-        {"word": "Surprised", "translation": "Ҳайратзада"}
-    ],
-    "7": [
-        {"word": "Allow", "translation": "Иҷозат додан"},
-        {"word": "Announce", "translation": "Эълон кардан"},
-        {"word": "Beside", "translation": "Дар наздӣ"},
-        {"word": "Challenge", "translation": "Мушкилот"},
-        {"word": "Expert", "translation": "Мутахассис"},
-        {"word": "Famous", "translation": "Машҳур"},
-        {"word": "Peace", "translation": "Тинҷӣ, сулҳ"},
-        {"word": "Protect", "translation": "Муҳофизат кардан"}
-    ],
-    "8": [
-        {"word": "Accept", "translation": "Қабул кардан"},
-        {"word": "Arrange", "translation": "Танзим кардан"},
-        {"word": "Attend", "translation": "Иштирок кардан"},
-        {"word": "Chase", "translation": "Дунболгирӣ кардан"},
-        {"word": "Huge", "translation": "Хеле калон"},
-        {"word": "Necessary", "translation": "Зарурӣ"},
-        {"word": "Satisfied", "translation": "Қонеъ, розӣ"}
-    ],
-    "9": [
-        {"word": "Animal", "translation": "Ҳайвон"},
-        {"word": "Bus", "translation": "Автобус"},
-        {"word": "Cat", "translation": "Гурба"},
-        {"word": "Dog", "translation": "Саг"},
-        {"word": "Door", "translation": "Дар"},
-        {"word": "Friend", "translation": "Дӯст"},
-        {"word": "Hospital", "translation": "Беморхона"},
-        {"word": "School", "translation": "Мактаб"}
-    ],
-    "10": [
-        {"word": "Benefit", "translation": "Фоида, манфиат"},
-        {"word": "Chance", "translation": "Имконият"},
-        {"word": "Essential", "translation": "Муҳим, зарурӣ"},
-        {"word": "Far", "translation": "Дур"},
-        {"word": "Grass", "translation": "Алаф"},
-        {"word": "Image", "translation": "Акс, тасвир"},
-        {"word": "Proud", "translation": "Сарбаланд"},
-        {"word": "Trouble", "translation": "Мушкилӣ"}
+        {"word": "Alien", "translation": "Мавҷудоти бегона", "example": "The alien arrived in a flying saucer."},
+        {"word": "Among", "translation": "Дар байни", "example": "There is a red apple among the green ones."},
+        {"word": "Chart", "translation": "Ҷадвал, диаграмма", "example": "We used a chart to track our sales progress."},
+        {"word": "Cloud", "translation": "Абр", "example": "Look at that white cloud in the blue sky."},
+        {"word": "Describe", "translation": "Тавсиф кардан", "example": "Can you describe what the man looked like?"},
+        {"word": "Fail", "translation": "Ноком шудан", "example": "If you do not study, you might fail the test."},
+        {"word": "Grade", "translation": "Баҳо, синф", "example": "He got a good grade on his English exam."},
+        {"word": "Library", "translation": "Китобхона", "example": "I go to the library to study quietly."},
+        {"word": "Planet", "translation": "Сайёра", "example": "Earth is the third planet from the sun."},
+        {"word": "Solve", "translation": "Ҳал кардан", "example": "She managed to solve the hard math problem."}
     ]
 }
 
 user_states = {}
 
-# Клавиатураи асосӣ
-def get_main_keyboard():
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.add(types.KeyboardButton("📖 Луғат"), types.KeyboardButton("🎲 Тест"))
-    return markup
-
-# Клавиатураи оддии Юнитҳо аз 1 то 30 (Дар поёни экран)
-def get_units_keyboard():
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=3)
-    buttons = [types.KeyboardButton(f"Юнит {i}") for i in range(1, 31)]
-    btn_back = types.KeyboardButton("⬅️ Ба Ортиқ (Меню)")
+# Сохтани тугмаҳои инлайнии Юнитҳо (дар даруни чат)
+def get_inline_units_keyboard():
+    markup = types.InlineKeyboardMarkup(row_width=3)
+    buttons = []
+    for i in range(1, 31):
+        buttons.append(types.InlineKeyboardButton(f"Unit {i}", callback_data=f"list_unit_{i}"))
     markup.add(*buttons)
-    markup.add(btn_back)
     return markup
 
-@bot.message_handler(commands=['start'])
+# Тугмаи инлайнии оғози тест барои ҳар як Юнит
+def get_inline_quiz_keyboard(unit_num):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(f"🎲 Оғози Тести Юнит {unit_num}", callback_data=f"start_quiz_{unit_num}"))
+    markup.add(types.InlineKeyboardButton("📚 Баргашт ба рӯйхати Юнитҳо", callback_data="back_to_units"))
+    return markup
+
+@bot.message_handler(commands=['start', 'menu'])
 def send_welcome(message):
     welcome_msg = (
-        "Салом! 👋 Хуш омадед ба боти омӯзишии калимаҳо!\n\n"
-        "👨‍💻 **Созанда:** Абдурраҳим\n"
-        "Интихоб кун 👇"
+        "Салом! 👋 Хуш омадед ба боти омӯзишии калимаҳои англисӣ!\n\n"
+        "👨‍💻 **Созанда:** Абдурраҳим\n\n"
+        "📚 **Кадом Юнитро хондан мехоҳӣ? Аз тугмаҳои зерин интихоб кун:**"
     )
-    bot.send_message(message.chat.id, welcome_msg, reply_markup=get_main_keyboard(), parse_mode="Markdown")
+    # Клавиатураи оддии поёни экранро нест мекунем (ReplyKeyboardRemove)
+    bot.send_message(message.chat.id, welcome_msg, reply_markup=get_inline_units_keyboard(), parse_mode="Markdown")
 
-@bot.message_handler(func=lambda message: True)
-def handle_bot_logic(message):
-    chat_id = message.chat.id
-    text = message.text
+# Хендлер барои пахши тугмаҳои инлайнӣ
+@bot.callback_query_handler(func=lambda call: True)
+def handle_inline_buttons(call):
+    chat_id = call.message.chat.id
+    data = call.data
 
-    if text == "📖 Луғат":
-        # Намоиши менюи оддии Юнитҳо дар поёни экран
-        bot.send_message(chat_id, "📚 **Кадом Юнитро хондан мехоҳӣ? Интихоб кун:**", reply_markup=get_units_keyboard())
-
-    elif text == "⬅️ Ба Ортиқ (Меню)":
-        # Баргашт ба менюи асосӣ
-        bot.send_message(chat_id, "🏠 Ба менюи асосӣ баргаштид:", reply_markup=get_main_keyboard())
-
-    elif text.startswith("Юнит "):
-        # Гирифтани рақами Юнит аз матни тугма
-        unit_number = text.split(" ")[1]
+    if data.startswith("list_unit_"):
+        unit_number = data.split("_")[2]
         
         if unit_number in DATA_BASE and DATA_BASE[unit_number]:
-            response = f"📖 **Рӯйхати луғатҳои Unit {unit_number}:**\n\n"
+            response = f"📖 **Рӯйхати луғатҳои Unit {unit_number} (Бо мисолҳо):**\n\n"
             for i, item in enumerate(DATA_BASE[unit_number], 1):
-                response += f"{i}. 🔤 **{item['word']}** = 🇹🇯 {item['translation']}\n"
-        else:
-            response = f"ℹ️ Калимаҳо барои **Unit {unit_number}** ба наздикӣ илова карда мешаванд!"
-        
-        # Калимаҳоро ҳамчун паёми нав мефиристем (кӯҳнаҳо тоза намешаванд ва анимация нест)
-        bot.send_message(chat_id, response, parse_mode="Markdown")
-
-    elif text == "🎲 Тест":
-        # Омода кардани саволҳо аз ҳамаи калимаҳои мавҷуда
-        all_combined = []
-        for unit_words in DATA_BASE.values():
-            all_combined.extend(unit_words)
+                response += f"{i}. 🔤 **{item['word']}** = 🇹🇯 {item['translation']}\n📝 _Мисол:_ {item['example']}\n\n"
             
-        if not all_combined:
-            bot.send_message(chat_id, "❌ Базаи калимаҳо холӣ аст.")
+            # Калимаҳо ҳамчун паёми НАВ меоянд (кӯҳнаҳо тоза намешаванд)
+            bot.send_message(chat_id, response, parse_mode="Markdown", reply_markup=get_inline_quiz_keyboard(unit_number))
+        else:
+            bot.send_message(chat_id, f"ℹ️ Калимаҳо бо мисолҳояшон барои **Unit {unit_number}** ба наздикӣ илова карда мешаванд!", reply_markup=get_inline_units_keyboard())
+        
+        bot.answer_callback_query(call.id)
+
+    elif data == "back_to_units":
+        bot.send_message(chat_id, "📚 **Кадом Юнитро хондан мехоҳӣ? Интихоб кун:**", reply_markup=get_inline_units_keyboard())
+        bot.answer_callback_query(call.id)
+
+    elif data.startswith("start_quiz_"):
+        unit_number = data.split("_")[2]
+        unit_words = DATA_BASE.get(unit_number, [])
+        
+        if not unit_words:
+            bot.send_message(chat_id, f"❌ Дар Unit {unit_number} калима барои тест ёфт нашуд.")
+            bot.answer_callback_query(call.id)
             return
 
-        shuffled_questions = random.sample(all_combined, min(10, len(all_combined)))
+        # Интихоби 10 савол маҳз аз ҳамон Юнити интихобшуда
+        shuffled_questions = random.sample(unit_words, min(10, len(unit_words)))
+        
+        all_words_pool = []
+        for uw in DATA_BASE.values():
+            all_words_pool.extend(uw)
+
         user_states[chat_id] = {
             "quiz_list": shuffled_questions,
             "quiz_index": 0,
             "score": 0,
             "last_poll_id": None,
             "correct_answer": "",
-            "all_pool": all_combined
+            "all_pool": all_words_pool
         }
-        bot.send_message(chat_id, "🚀 Тести омехта аз 10 савол оғоз шуд!", reply_markup=get_main_keyboard())
+        
+        bot.send_message(chat_id, f"🚀 Тести махсус аз **Юнит {unit_number}** оғоз шуд (10 Савол)!")
         send_next_quiz(chat_id)
+        bot.answer_callback_query(call.id)
 
 def send_next_quiz(chat_id):
     state = user_states.get(chat_id)
@@ -222,11 +157,17 @@ def send_next_quiz(chat_id):
     all_pool = state["all_pool"]
     
     if idx >= len(questions):
-        bot.send_message(chat_id, f"🏁 **Тест ба охир расид!**\n📊 Натиҷаи ту: **{state['score']}/10** хол.", reply_markup=get_main_keyboard(), parse_mode="Markdown")
+        # Охири тест ва пешниҳоди тугмаҳои Юнитҳо барои идома додан
+        bot.send_message(
+            chat_id, 
+            f"🏁 **Тест ба охир расид!**\n📊 Натиҷаи ту: **{state['score']}/{len(questions)}** хол.", 
+            reply_markup=get_inline_units_keyboard(), 
+            parse_mode="Markdown"
+        )
         return
 
     correct_item = questions[idx]
-    question_text = f"Саволи {idx + 1}/10: Тарҷумаи дурусти калимаи '{correct_item['word']}' кадом аст?"
+    question_text = f"Саволи {idx + 1}/{len(questions)}: Тарҷумаи дурусти калимаи '{correct_item['word']}' кадом аст?"
     
     wrong_options = [item['translation'] for item in all_pool if item['translation'] != correct_item['translation']]
     wrong_options = list(set(wrong_options))
@@ -257,24 +198,4 @@ def handle_poll_answer(answer):
     state = user_states.get(chat_id)
     
     if state and state.get("last_poll_id") == answer.poll_id:
-        options = state.get("options_list", [])
-        chosen_option_id = answer.option_ids[0]
-        chosen_translation = options[chosen_option_id]
-        
-        if chosen_translation == state.get("correct_answer"):
-            user_states[chat_id]["score"] += 1
-            
-        user_states[chat_id]["quiz_index"] += 1
-        
-        import threading
-        threading.Timer(1.0, send_next_quiz, args=[chat_id]).start()
-
-# Веб-сервер барои Render
-app = Flask(__name__)
-@app.route('/')
-def index(): return "Бот фаъол аст!"
-
-if __name__ == "__main__":
-    import threading
-    threading.Thread(target=lambda: app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))).start()
-    bot.polling(none_stop=True)
+        options = state.get("options_list
