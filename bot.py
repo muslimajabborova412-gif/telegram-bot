@@ -12,7 +12,7 @@ def start(message):
     markup = types.InlineKeyboardMarkup(row_width=3)
     buttons = [types.InlineKeyboardButton(f"U{i}", callback_data=f"unit_{i}") for i in range(1, 31)]
     markup.add(*buttons)
-    bot.reply_to(message, "Салом! Яке аз Юнитҳоро интихоб кунед:", reply_markup=markup)
+    bot.reply_to(message, "Салом! Барои омӯзиш Юнит-ро интихоб кунед:", reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith("unit_"))
 def handle_unit(call):
@@ -36,21 +36,23 @@ def handle_unit(call):
             # Формат: Юнит;Калима;Тарҷума;Мисол
             if len(parts) >= 4:
                 full_text += f"🔹 *{parts[1]}* — {parts[2]}\n📝 {parts[3]}\n\n"
-                audio_text += f"{parts[1]}. "
+                audio_text += f"Word: {parts[1]}. Example: {parts[3]}. "
     
     if found:
         bot.send_message(call.message.chat.id, full_text, parse_mode="Markdown")
         
         # Эҷоди аудио
-        tts = gTTS(text=audio_text, lang='en')
-        tts.save("unit.mp3")
-        with open("unit.mp3", "rb") as audio:
-            bot.send_voice(call.message.chat.id, audio)
-        os.remove("unit.mp3")
+        try:
+            tts = gTTS(text=audio_text, lang='en')
+            tts.save("unit.mp3")
+            with open("unit.mp3", "rb") as audio:
+                bot.send_voice(call.message.chat.id, audio)
+            os.remove("unit.mp3")
+        except Exception as e:
+            bot.send_message(call.message.chat.id, "Хатогӣ дар эҷоди аудио. Лутфан, дертар кӯшиш кунед.")
     else:
         bot.answer_callback_query(call.id, "Калимаҳо ёфт нашуданд.")
 
-# Барои Flask дар Render
 app = Flask(__name__)
 @app.route('/')
 def home(): return "Bot is running!"
