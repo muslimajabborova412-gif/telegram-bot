@@ -1,99 +1,40 @@
-1|Agree|Рози шудан
-1|Alcohol|Алкогол (нӯшокии спиртӣ)
-1|Arrive|Омадан, расидан
-1|August|Август
-1|Boat|Қаиқ, киштӣ
-1|Breakfast|Нонушта
-1|Camera|Камера, аксбардорак
-1|Capital|Пойтахт
-1|Catch|Доштан, қапидан
-1|Duck|Мурғобӣ
-1|Enjoy|Ҳаловат бурдан
-1|Invite|Даъват кардан
-1|Love|Дӯст доштан
-1|Month|Моҳ
-1|Travel|Саёҳат кардан
-1|Typical|Одатӣ, маъмулӣ
-1|Visit|Хабар гирифтан
-1|Weather|Обу ҳаво
-1|Week|Ҳафта
-1|Wine|Шароб (вино)
-2|Adventure|Саргузашт
-2|Approach|Наздик шудан
-2|Carefully|Боэҳтиёт
-2|Chemical|Моддаи химиявӣ
-2|Create|Сохтан, эҷод кардан
-2|Evil|Бадӣ, ҷоҳил
-2|Experiment|Таҷриба, озмоиш
-2|Kill|Куштан
-2|Laboratory|Лаборатория
-2|Laugh|Ханда
-3|Alien|Мавҷудоти бегона
-3|Among|Дар байни
-3|Chart|Ҷадвал, диаграмма
-3|Cloud|Абр
-3|Describe|Тавсиф кардан
-3|Fail|Ноком шудан
-3|Grade|Баҳо, синф
-3|Library|Китобхона
-3|Planet|Сайёра
-3|Solve|Ҳал кардан
-4|Avoid|Дурӣ ҷӯстан
-4|Behave|Рафтори хуб кардан
-4|Calm|Ором
-4|Concern|Хавотирӣ
-4|Expect|Умед доштан
-4|Habit|Одат
-4|Patient|Босабр
-4|Positive|Мусбат
-4|Punish|Ҷазо додан
-4|Village|Деҳа
-5|Active|Фаъол
-5|Adult|Калонсол
-5|Age|Синну сол
-5|Balance|Мувозинат
-5|Bike|Велосипед
-5|Choose|Интихоб кардан
-5|Doctor|Духтур
-5|Football|Футбол
-5|Game|Бозӣ
-5|Heart|Дил
-6|Apart|Ҷудо, дур аз ҳам
-6|Bilingual|Дузабона
-6|Completely|Пурра, комилан
-6|Mirror|Оина
-6|Natural|Табиӣ
-6|Sport|Варзиш
-6|Surprised|Ҳайратзада
-7|Allow|Иҷозат додан
-7|Announce|Эълон кардан
-7|Beside|Дар наздӣ
-7|Challenge|Мушкилот
-7|Expert|Мутахассис
-7|Famous|Машҳур
-7|Peace|Тинҷӣ, сулҳ
-7|Protect|Муҳофизат кардан
-8|Accept|Қабул кардан
-8|Arrange|Танзим кардан
-8|Attend|Иштирок кардан
-8|Chase|Дунболгирӣ кардан
-8|Huge|Хеле калон
-8|Necessary|Зарурӣ
-8|Satisfied|Қонеъ, розӣ
-9|Animal|Ҳайвон
-9|Bus|Автобус
-9|Cat|Гурба
-9|Dog|Саг
-9|Door|Дар
-9|Friend|Дӯст
-9|Hospital|Беморхона
-9|School|Мактаб
-10|Benefit|Фоида, манфиат
-10|Chance|Имконият
-10|Essential|Муҳим, зарурӣ
-10|Far|Дур
-10|Grass|Алаф
-10|Image|Акс, тасвир
-10|Proud|Сарбаланд
-10|Trouble|Мушкилӣ
-25|Example|Намунаи Юнит 25
+1|Agree|Рози шудан|I agree with your opinion.
+1|Alcohol|Алкогол (нӯшокии спиртӣ)|Alcohol is bad for health.
+1|Arrive|Омадан, расидан|The train will arrive at 5 PM.
+1|August|Август|August is the eighth month of the year.
+1|Boat|Қаиқ, киштӣ|We rode a small boat on the lake.
+1|Breakfast|Нонушта|I had a healthy breakfast this morning.
+1|Camera|Камера, аксбардорак|He took a picture with his new camera.
+1|Capital|Пойтахт|Dushanbe is the capital of Tajikistan.
+1|Catch|Доштан, қапидан|Did you catch the ball?
+1|Duck|Мурғобӣ|The duck is swimming in the pond.
+1|Enjoy|Ҳаловат бурдан|We enjoyed our time at the beach.
+1|Invite|Даъват кардан|They invited me to the party.
+1|Love|Дӯст доштан|I love my family very much.
+1|Month|Моҳ|January is the first month of the year.
+1|Travel|Саёҳат кардан|I want to travel to Japan.
+1|Typical|Одатӣ, маъмулӣ|It was a typical cold winter day.
+1|Visit|Хабар гирифтан|I will visit my grandparents tomorrow.
+1|Weather|Обу ҳаво|The weather is very hot today.
+1|Week|Ҳафта|There are seven days in a week.
+1|Wine|Шароб (вино)|Wine is made from grapes.
+2|Adventure|Саргузашт|They went on a wild adventure in the jungle.
+2|Approach|Наздик шудан|The boy approached the barking dog carefully.
+2|Carefully|Боэҳтиёт|Please carry the glasses carefully.
+2|Chemical|Моддаи химиявӣ|The scientist mixed the chemicals together.
+2|Create|Сохтан, эҷод кардан|She created a beautiful painting.
+2|Evil|Бадӣ, ҷоҳил|The evil witch cursed the castle.
+2|Experiment|Таҷриба, озмоиш|We did an experiment in science class.
+2|Kill|Куштан|The hunter killed a deer for food.
+2|Laboratory|Лаборатория|They work in a high-tech laboratory.
+2|Laugh|Ханда|His funny joke made everyone laugh.
+3|Alien|Мавҷудоти бегона|The alien arrived in a flying saucer.
+3|Among|Дар байни|There is a red apple among the green ones.
+3|Chart|Ҷадвал, диаграмма|We used a chart to track our sales progress.
+3|Cloud|Абр|Look at that white cloud in the blue sky.
+3|Describe|Тавсиф кардан|Can you describe what the man looked like?
+3|Fail|Ноком шудан|If you do not study, you might fail the test.
+3|Grade|Баҳо, синф|He got a good grade on his English exam.
+3|Library|Китобхона|I go to the library to study quietly.
+3|Planet|Сайёра|Earth is the third planet from the sun.
+3|Solve|Ҳал кардан|She managed to solve the hard math problem.
