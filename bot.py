@@ -1,6 +1,7 @@
 import os
 import sys
 import random
+from telebot import types
 
 # Насби автоматии китобхонаҳо дар Render
 try:
@@ -14,62 +15,77 @@ except ModuleNotFoundError:
 BOT_TOKEN = os.environ.get('BOT_TOKEN')
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Базаи калимаҳо аз китоби 4000 Essential English Words
-WORDS_DATABASE = [
+# Рӯйхати пурраи 20 калимаи Unit 1 мустақим аз рӯи матни ту
+UNIT1_WORDS = [
     {"word": "Agree", "translation": "Рози шудан", "example": "I agree with your opinion."},
+    {"word": "Alcohol", "translation": "Алкогол (нӯшокии спиртӣ)", "example": "Alcohol is bad for health."},
     {"word": "Arrive", "translation": "Омадан, расидан", "example": "The train will arrive at 5 PM."},
-    {"word": "Attack", "translation": "Ҳуҷум кардан", "example": "The dog attacked the stranger."},
-    {"word": "Bottom", "translation": "Таг, поён", "example": "The coins were at the bottom of the sea."},
-    {"word": "Clever", "translation": "Боҳуш, зирак", "example": "The clever boy solved the puzzle."},
-    {"word": "Cruel", "translation": "Бераҳм, золим", "example": "The cruel man shouted at the kitten."},
-    {"word": "Hide", "translation": "Пинҳон шудан", "example": "The children like to hide in the closet."},
-    {"word": "Hunt", "translation": "Шикор кардан", "example": "Cats like to hunt mice."},
-    {"word": "Lot", "translation": "Хеле бисёр", "example": "There are a lot of apples on the tree."},
-    {"word": "Middle", "translation": "Муҳит, байн, марказ", "example": "He stood in the middle of the room."}
+    {"word": "August", "translation": "Август", "example": "August is the eighth month of the year."},
+    {"word": "Boat", "translation": "Қаиқ, киштӣ", "example": "We rode a small boat on the lake."},
+    {"word": "Breakfast", "translation": "Нонушта", "example": "I had a healthy breakfast this morning."},
+    {"word": "Camera", "translation": "Камера, аксбардорак", "example": "He took a picture with his new camera."},
+    {"word": "Capital", "translation": "Пойтахт", "example": "Dushanbe is the capital of Tajikistan."},
+    {"word": "Catch", "translation": "Доштан, қапидан", "example": "Did you catch the ball?"},
+    {"word": "Duck", "translation": "Мурғобӣ", "example": "The duck is swimming in the pond."},
+    {"word": "Enjoy", "translation": "Ҳаловат бурдан, маъқул шудан", "example": "We enjoyed our time at the beach."},
+    {"word": "Invite", "translation": "Даъват кардан", "example": "They invited me to the party."},
+    {"word": "Love", "translation": "Дӯст доштан, ишқ", "example": "I love my family very much."},
+    {"word": "Month", "translation": "Моҳ", "example": "January is the first month of the year."},
+    {"word": "Travel", "translation": "Саёҳат кардан", "example": "I want to travel to Japan."},
+    {"word": "Typical", "translation": "Одатӣ, маъмулӣ", "example": "It was a typical cold winter day."},
+    {"word": "Visit", "translation": "Хабар гирифтан, дидан кардан", "example": "I will visit my grandparents tomorrow."},
+    {"word": "Weather", "translation": "Обу ҳаво", "example": "The weather is very hot today."},
+    {"word": "Week", "translation": "Ҳафта", "example": "There are seven days in a week."},
+    {"word": "Wine", "translation": "Шароб (вино)", "example": "Wine is made from grapes."}
 ]
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=False)
+    btn_words = types.KeyboardButton("📖 Луғат (Unit 1 Пурра)")
+    btn_quiz = types.KeyboardButton("🎲 Савол (Тест)")
+    markup.add(btn_words, btn_quiz)
+
     welcome_msg = (
         "Салом, хуш омадед! 👋🇬🇧\n\n"
-        "Ин бот барои омӯхтани **4000 Essential English Words** сохта шудааст!\n"
+        "Ин бот маҳз аз рӯи китоби **4000 Essential English Words 1** сохта шудааст! 📚\n"
         "👨‍💻 **Созанда (Developer):** Абдурраҳим\n\n"
-        "Фармонҳои мавҷуда:\n"
-        "📖 /word - Гирифтани калимаи тасодуфӣ бо тарҷума\n"
-        "🎲 /quiz - Санҷиши дониш (Тест)"
+        "Яке аз тугмаҳои поёнро интихоб кунед 👇"
     )
-    bot.reply_to(message, welcome_msg, parse_mode="Markdown")
+    bot.send_message(message.chat.id, welcome_msg, reply_markup=markup, parse_mode="Markdown")
 
-@bot.message_handler(commands=['word'])
-def send_word(message):
-    item = random.choice(WORDS_DATABASE)
-    text = (
-        f"🔤 **Калима:** {item['word']}\n"
-        f"🇹🇯 **Тарҷума:** {item['translation']}\n"
-        f"📝 **Мисол:** _{item['example']}_"
-    )
-    bot.send_message(message.chat.id, text, parse_mode="Markdown")
-
-@bot.message_handler(commands=['quiz'])
-def send_quiz(message):
-    correct_item = random.choice(WORDS_DATABASE)
-    question = f"Тарҷумаи дурусти калимаи '{correct_item['word']}' кадом аст?"
-    
-    wrong_options = [item['translation'] for item in WORDS_DATABASE if item['translation'] != correct_item['translation']]
-    options = random.sample(wrong_options, 3)
-    options.append(correct_item['translation'])
-    random.shuffle(options)
-    
-    correct_index = options.index(correct_item['translation'])
-    
-    bot.send_poll(
-        chat_id=message.chat.id,
-        question=question,
-        options=options,
-        type='quiz',
-        correct_option_id=correct_index,
-        is_anonymous=False
-    )
+@bot.message_handler(func=lambda message: True)
+def handle_buttons(message):
+    if message.text == "📖 Луғат (Unit 1 Пурра)":
+        # Нишон додани ҳамаи 20 калима бо мисолҳояш
+        response = "📚 **4000 Essential English Words 1**\n"
+        response += "✨ **Unit 1 (Ҳамаи 20 калима):**\n\n"
+        
+        for i, item in enumerate(UNIT1_WORDS, 1):
+            response += f"{i}. 🔤 **{item['word']}** - 🇹🇯 {item['translation']}\n📝 _Мисол:_ {item['example']}\n\n"
+            
+        bot.send_message(message.chat.id, response, parse_mode="Markdown")
+        
+    elif message.text == "🎲 Савол (Тест)":
+        # Тест аз байни ҳамаи 20 калима
+        correct_item = random.choice(UNIT1_WORDS)
+        question = f"Тарҷумаи дурусти калимаи '{correct_item['word']}' кадом аст?"
+        
+        wrong_options = [item['translation'] for item in UNIT1_WORDS if item['translation'] != correct_item['translation']]
+        options = random.sample(wrong_options, 3)
+        options.append(correct_item['translation'])
+        random.shuffle(options)
+        
+        correct_index = options.index(correct_item['translation'])
+        
+        bot.send_poll(
+            chat_id=message.chat.id,
+            question=question,
+            options=options,
+            type='quiz',
+            correct_option_id=correct_index,
+            is_anonymous=False
+        )
 
 # Веб-сервер барои Render
 app = Flask(__name__)
