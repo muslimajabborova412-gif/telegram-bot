@@ -28,6 +28,16 @@
 2|Kill|Куштан|The hunter killed a deer for food.
 2|Laboratory|Лаборатория|They work in a high-tech laboratory.
 2|Laugh|Ханда|His funny joke made everyone laugh.
+2|Loud|Баланд (садо)|The loud noise woke up the baby.
+2|Nervous|Хавотир, асабӣ|He felt nervous before the big exam.
+2|Noise|Шовушур, садо|I heard a strange noise in the kitchen.
+2|Project|Лоиҳа, кор|Our team is working on a science project.
+2|Scare|Тарсонидан|The ghost story scared the children.
+2|Secret|Сир, пинҳонӣ|She told me a deep secret.
+2|Shout|Дод задан|Don't shout in the library!
+2|Smell|Бӯй кашидан, бӯй|The flowers smell very nice.
+2|Terrible|Даҳшатбор, бад|I had a terrible headache yesterday.
+2|Worse|Бадтар|The weather became worse in the evening.
 3|Alien|Мавҷудоти бегона|The alien arrived in a flying saucer.
 3|Among|Дар байни|There is a red apple among the green ones.
 3|Chart|Ҷадвал, диаграмма|We used a chart to track our sales progress.
@@ -38,3 +48,13 @@
 3|Library|Китобхона|I go to the library to study quietly.
 3|Planet|Сайёра|Earth is the third planet from the sun.
 3|Solve|Ҳал кардан|She managed to solve the hard math problem.
+3|Several|Якчанд, чандин|I have seen that movie several times.
+3|Shape|Шакл|The cookies were in the shape of stars.
+3|Suddenly|Ногаҳон|Suddenly, the lights went out.
+3|Suppose|Фарз кардан|I suppose we should leave now.
+3|Understand|Фаҳмидан|Do you understand the lesson?
+3|View|Намуд, манзара|The hotel room has a beautiful sea view.
+3|Well|Хуб|She speaks English very well.
+3|Appropriate|Муносиб, дуруст|His clothes were not appropriate for the wedding.
+3|Avoid|Дурӣ ҷӯстан|You should avoid eating too much sugar.
+3|Behave|Рафтори хуб кардан|The children behaved very well today.
