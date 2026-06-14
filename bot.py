@@ -3,65 +3,49 @@ import threading
 import telebot
 from flask import Flask
 from gtts import gTTS
-from telebot import types
-import time
 
 API_TOKEN = os.environ.get('API_TOKEN')
 bot = telebot.TeleBot(API_TOKEN)
 
-# Базаи калимаҳо (бо тарҷума ва таърифи англисӣ)
+# Базаи калимаҳо (Юнити 1)
 words_db = [
     {'word': 'Agree', 'translation': 'Рози шудан', 'definition': 'To have the same opinion as another person', 'example': 'The students agree they have too much homework.'},
-    {'word': 'Alcohol', 'translation': 'Алкогол', 'definition': 'A drink that can make people drunk', 'example': 'A person should not drive a car after drinking alcohol.'}
+    {'word': 'Alcohol', 'translation': 'Алкогол', 'definition': 'A drink that can make people drunk', 'example': 'A person should not drive a car after drinking alcohol.'},
+    # ... (дигар 18 калимаи дигарро илова кун)
 ]
 
-# Функсияи аудио (танҳо англисӣ)
-def send_word(chat_id, index):
-    item = words_db[index]
-    msg = (f"🔤 **Калима:** {item['word']}\n"
-           f"🇹🇯 **Тарҷума:** {item['translation']}\n"
-           f"📖 **Таъриф:** {item['definition']}\n"
-           f"📝 **Мисол:** {item['example']}")
-    
-    markup = types.InlineKeyboardMarkup()
-    if index + 1 < len(words_db):
-        btn = types.InlineKeyboardButton("➡️ Калимаи нав", callback_data=f"next_{index + 1}")
-        markup.add(btn)
-    
-    bot.send_message(chat_id, msg, parse_mode="Markdown", reply_markup=markup)
-    
-    # Танҳо калима ва таърифро мехонад
-    audio_text = f"{item['word']}. {item['definition']}"
-    tts = gTTS(text=audio_text, lang='en')
-    tts.save("word.mp3")
-    
-    with open("word.mp3", "rb") as audio:
-        bot.send_voice(chat_id, audio)
-    os.remove("word.mp3")
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith("next_"))
-def next_word(call):
-    index = int(call.data.split("_")[1])
-    if index < len(words_db):
-        send_word(call.message.chat.id, index)
-
 @bot.message_handler(commands=['unit1'])
-def start_unit1(message):
-    send_word(message.chat.id, 0)
+def send_unit1(message):
+    # 1. Тайёр кардани матни пурра барои корбар
+    full_text = "📚 **Калимаҳои Юнити 1:**\n\n"
+    audio_text = ""
+    
+    for item in words_db:
+        full_text += (f"🔤 {item['word']} - {item['translation']}\n"
+                      f"📖 {item['definition']}\n"
+                      f"📝 {item['example']}\n\n")
+        # Танҳо калимаҳоро барои аудио ҷамъ мекунем
+        audio_text += f"{item['word']}. "
 
-# Қисми муҳим: Сервер барои Render
+    # 2. Фиристодани матн
+    bot.send_message(message.chat.id, full_text, parse_mode="Markdown")
+    
+    # 3. Сохтани як аудиои калон барои ҳамаи калимаҳо
+    tts = gTTS(text=audio_text, lang='en')
+    tts.save("unit1.mp3")
+    
+    # 4. Фиристодани аудио
+    with open("unit1.mp3", "rb") as audio:
+        bot.send_voice(message.chat.id, audio, caption="🎧 Гӯш кунед ва такрор кунед!")
+    
+    os.remove("unit1.mp3")
+
+# (Қисми Flask ва run_bot мисли пештара боқӣ мемонад)
 app = Flask(__name__)
-
 @app.route('/')
-def home():
-    return "Bot is active!"
+def home(): return "Bot is active!"
 
-def run_bot():
-    while True:
-        try:
-            bot.polling(none_stop=True)
-        except Exception as e:
-            time.sleep(5) # Агар хато шавад, 5 сония интизор мешавем
+def run_bot(): bot.infinity_polling()
 
 if __name__ == '__main__':
     threading.Thread(target=run_bot).start()
