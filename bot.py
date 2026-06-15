@@ -32,7 +32,7 @@ async def start(update, context):
         [InlineKeyboardButton("4000 Essential English Words 1", callback_data='book1')],
         [InlineKeyboardButton("4000 Essential English Words 2", callback_data='book2')]
     ]
-    await update.message.reply_text("Китобро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
+    await update.message.reply_text("Хуш омадед! Китобро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def button(update, context):
     query = update.callback_query
@@ -40,7 +40,6 @@ async def button(update, context):
 
     if query.data in ['book1', 'book2']:
         context.user_data['book'] = f"{query.data}.txt"
-        # Тугмаҳо барои 30 юнит
         keyboard = [[InlineKeyboardButton(f"Unit {i}", callback_data=f"unit_{i}")] for i in range(1, 31)]
         await query.edit_message_text("Юнитро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
 
@@ -55,7 +54,7 @@ async def button(update, context):
                 word_text = f"🔤 {w[1]}\n🇺🇿 {w[2]}\n📝 {w[3]}"
                 await context.bot.send_message(chat_id=query.message.chat_id, text=word_text)
                 
-                # Сохтани аудио (калима + мисол)
+                # Сохтани аудио (оҳиста ва бо забони англисӣ)
                 tts = gTTS(text=f"{w[1]}. {w[3]}", lang='en', slow=True)
                 tts.save("speech.mp3")
                 await context.bot.send_audio(chat_id=query.message.chat_id, audio=open("speech.mp3", "rb"))
@@ -64,7 +63,10 @@ async def button(update, context):
 
 if __name__ == '__main__':
     Thread(target=run_web).start()
-    TOKEN = os.getenv("TOKEN") 
+    
+    # ТОКЕН ДАР ИН ҶО МЕМОНАД
+    TOKEN = "8201016798:AAEJMbrNKdnoIoUxZUsUUKcdbcOclY1pCQM"
+    
     app_bot = ApplicationBuilder().token(TOKEN).build()
     app_bot.add_handler(CommandHandler('start', start))
     app_bot.add_handler(CallbackQueryHandler(button))
