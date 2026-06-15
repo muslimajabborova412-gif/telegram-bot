@@ -1,27 +1,13 @@
-from telegram.ext import ApplicationBuilder, CommandHandler
+import os
+from telegram.ext import ApplicationBuilder
 
-# Функция барои хондани файл
-def read_book(filename):
-    try:
-        with open(filename, 'r', encoding='utf-8') as f:
-            return f.read()
-    except FileNotFoundError:
-        return "Файл ёфт нашуд."
-
-# Фармон барои book1
-async def send_book1(update, context):
-    text = read_book('book1.txt')
-    await update.message.reply_text(text)
-
-# Фармон барои book2
-async def send_book2(update, context):
-    text = read_book('book2.txt')
-    await update.message.reply_text(text)
+# Ин сатр токенро аз Environment Variables-и Render мегирад
+TOKEN = os.environ.get("BOT_TOKEN")
 
 if __name__ == '__main__':
-    application = ApplicationBuilder().token("ТОКЕНИ_ШУМО").build()
-    
-    application.add_handler(CommandHandler("book1", send_book1))
-    application.add_handler(CommandHandler("book2", send_book2))
-    
-    application.run_polling()
+    if not TOKEN:
+        print("Хатогӣ: BOT_TOKEN дар танзимот ёфт нашуд!")
+    else:
+        application = ApplicationBuilder().token(TOKEN).build()
+        # Дар ин ҷо handler-ҳои худро илова кунед
+        application.run_polling()
