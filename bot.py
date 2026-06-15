@@ -1,13 +1,30 @@
 import os
-from telegram.ext import ApplicationBuilder
+from flask import Flask
+from threading import Thread
+from telegram.ext import ApplicationBuilder, CommandHandler
 
-# Ин сатр токенро аз Environment Variables-и Render мегирад
-TOKEN = os.environ.get("BOT_TOKEN")
+# 1. Танзими Flask барои Web Service (барои Render)
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is running!"
+
+def run_web():
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
+
+# 2. Логикаи Бот
+async def start(update, context):
+    await update.message.reply_text("Боти ман ҳамчун Web Service кор мекунад!")
 
 if __name__ == '__main__':
-    if not TOKEN:
-        print("Хатогӣ: BOT_TOKEN дар танзимот ёфт нашуд!")
-    else:
-        application = ApplicationBuilder().token(TOKEN).build()
-        # Дар ин ҷо handler-ҳои худро илова кунед
-        application.run_polling()
+    # Серверро дар алоҳидагӣ сар медиҳем
+    Thread(target=run_web).start()
+
+    # Токени худро дар ин ҷо боэҳтиёт иваз кун
+    TOKEN = "ТОКЕНИ_ҲАҚИҚИИ_ХУДРО_ДАР_ИН_ҶО_ГУЗОР"
+    
+    application = ApplicationBuilder().token(TOKEN).build()
+    application.add_handler(CommandHandler('start', start))
+    
+    application.run_polling()
