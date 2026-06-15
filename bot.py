@@ -2,10 +2,10 @@ import os
 import random
 from flask import Flask
 from threading import Thread
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# Сервер барои Render
+# Сервери Flask барои Render (Web Service)
 app = Flask(__name__)
 @app.route('/')
 def home():
@@ -14,38 +14,55 @@ def home():
 def run_web():
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
 
-# Функсия барои калимаҳо
-def get_random_word(file_path):
+# Функсияи гирифтани калимаҳои як юнит
+def get_unit_words(book_file, unit_num):
+    words = []
     try:
-        with open(file_path, 'r', encoding='utf-8') as file:
-            lines = file.readlines()
-            line = random.choice(lines)
-            parts = line.strip().split(';')
-            if len(parts) == 4:
-                return f"📖 Юнит: {parts[0]}\n🔤 Калима: {parts[1]}\n🇺🇿 Тарҷума: {parts[2]}\n📝 Мисол: {parts[3]}"
+        with open(book_file, 'r', encoding='utf-8') as file:
+            for line in file:
+                parts = line.strip().split(';')
+                if len(parts) == 4 and parts[0] == str(unit_num):
+                    words.append(f"🔤 **{parts[1]}**\n🇺🇿 {parts[2]}\n📝 {parts[3]}")
     except:
-        return "Хатогӣ: Файл ёфт нашуд."
+        return []
+    return words
 
-# Командаҳо
+# Менюи асосӣ
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Салом! Барои гирифтани калима /book1 ё /book2 нависед.")
+    keyboard = [
+        [InlineKeyboardButton("📚 4000 Essential English Words 1", callback_data='book1')],
+        [InlineKeyboardButton("📚 4000 Essential English Words 2", callback_data='book2')]
+    ]
+    await update.message.reply_text("Хуш омадед! Китобро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
 
-async def book1(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(get_random_word('book1.txt'), parse_mode='Markdown')
+# Идоракунии тугмаҳо
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
 
-async def book2(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(get_random_word('book2.txt'), parse_mode='Markdown')
+    if query.data in ['book1', 'book2']:
+        context.user_data['book'] = f"{query.data}.txt"
+        # Сохтани 30 тугма барои юнитҳо
+        keyboard = [[InlineKeyboardButton(f"Unit {i}", callback_data=f"unit_{i}")] for i in range(1, 31)]
+        await query.edit_message_text(f"Юнитро аз {query.data} интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
+
+    elif query.data.startswith('unit_'):
+        unit_num = query.data.split('_')[1]
+        book_file = context.user_data.get('book')
+        words = get_unit_words(book_file, unit_num)
+        
+        if words:
+            await query.edit_message_text(f"📖 Калимаҳои Юнити {unit_num}:\n\n" + "\n\n".join(words), parse_mode='Markdown')
+        else:
+            await query.edit_message_text("Калимаҳо ёфт нашуданд ё юнит холӣ аст.")
 
 if __name__ == '__main__':
     Thread(target=run_web).start()
     
-    # ТОКЕНИ ХУДРО ИН ҶО ГУЗОР
     TOKEN = "8201016798:AAEJMbrNKdnoIoUxZUsUUKcdbcOclY1pCQM"
+    app_bot = ApplicationBuilder().token(TOKEN).build()
     
-    application = ApplicationBuilder().token(TOKEN).build()
+    app_bot.add_handler(CommandHandler('start', start))
+    app_bot.add_handler(CallbackQueryHandler(button))
     
-    application.add_handler(CommandHandler('start', start))
-    application.add_handler(CommandHandler('book1', book1))
-    application.add_handler(CommandHandler('book2', book2))
-    
-    application.run_polling()
+    app_bot.run_polling()
