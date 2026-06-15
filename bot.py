@@ -22,7 +22,7 @@ if __name__ == '__main__':
     Thread(target=run_web).start()
 
     # Токени худро дар ин ҷо боэҳтиёт иваз кун
-    TOKEN = "ТОКЕНИ_ҲАҚИҚИИ_ХУДРО_ДАР_ИН_ҶО_ГУЗОР"
+    TOKEN = "8201016798:AAEJMbrNKdnoIoUxZUsUUKcdbcOclY1pCQM"
     
     application = ApplicationBuilder().token(TOKEN).build()
     application.add_handler(CommandHandler('start', start))
