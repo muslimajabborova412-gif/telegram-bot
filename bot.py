@@ -1,27 +1,27 @@
-import os
-import threading
-from flask import Flask
 from telegram.ext import ApplicationBuilder, CommandHandler
 
-# Сервери хурди Flask барои қонеъ кардани Render
-app = Flask(__name__)
+# Функция барои хондани файл
+def read_book(filename):
+    try:
+        with open(filename, 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError:
+        return "Файл ёфт нашуд."
 
-@app.route('/')
-def home():
-    return "Bot is running!"
+# Фармон барои book1
+async def send_book1(update, context):
+    text = read_book('book1.txt')
+    await update.message.reply_text(text)
 
-def run_flask():
-    # Render порти 10000-ро истифода мебарад
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+# Фармон барои book2
+async def send_book2(update, context):
+    text = read_book('book2.txt')
+    await update.message.reply_text(text)
 
 if __name__ == '__main__':
-    # Flask-ро дар як поток (thread) алоҳида ба кор меандозем
-    t = threading.Thread(target=run_flask)
-    t.start()
+    application = ApplicationBuilder().token("ТОКЕНИ_ШУМО").build()
     
-    # Ботро бо polling ба кор меандозем
-    application = ApplicationBuilder().token(os.getenv("BOT_TOKEN")).build()
-    application.add_handler(CommandHandler("start", lambda u, c: u.message.reply_text("Бот кор мекунад!")))
+    application.add_handler(CommandHandler("book1", send_book1))
+    application.add_handler(CommandHandler("book2", send_book2))
     
-    print("Бот ва Flask ба кор даромаданд...")
     application.run_polling()
