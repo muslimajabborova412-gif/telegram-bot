@@ -65,7 +65,7 @@ if __name__ == '__main__':
     Thread(target=run_web).start()
     
     # ТОКЕН ДАР ИН ҶО МЕМОНАД
-    TOKEN = "8201016798:AAEJMbrNKdnoIoUxZUsUUKcdbcOclY1pCQM"
+    TOKEN = "8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0"
     
     app_bot = ApplicationBuilder().token(TOKEN).build()
     app_bot.add_handler(CommandHandler('start', start))
