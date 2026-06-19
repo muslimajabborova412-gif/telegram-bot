@@ -1,17 +1,14 @@
 import os
-import asyncio
 from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 from gtts import gTTS
 
 TOKEN = "8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0"
 app = Flask(__name__)
-# Барои дуруст кор кардани бот дар Render
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
 app_bot = ApplicationBuilder().token(TOKEN).build()
 
+# Функсия барои хондани калимаҳо
 def get_unit_words(book_file, unit_num):
     words = []
     if not os.path.exists(book_file): return []
@@ -45,29 +42,24 @@ async def button(update, context):
             return
         await query.edit_message_text(f"✅ Юнити {unit_num} оғоз шуд...")
         for w in words:
+            # ИН ҶО ПАРЧАМИ ТОҶИКИСТОН 🇹🇯
             word_text = f"🔤 **{w[1]}**\n🇹🇯 {w[2]}\n📝 {w[3]}"
             await context.bot.send_message(chat_id=query.message.chat_id, text=word_text, parse_mode='Markdown')
-            tts = gTTS(text=f"{w[1]}. {w[3]}", lang='en', slow=True)
+            tts = gTTS(text=f"{w[1]}. {w[3]}", lang='en')
             tts.save("speech.mp3")
             await context.bot.send_audio(chat_id=query.message.chat_id, audio=open("speech.mp3", "rb"))
 
 app_bot.add_handler(CommandHandler('start', start))
 app_bot.add_handler(CallbackQueryHandler(button))
 
-@app.route('/webhook', methods=['POST'])
+@app.route(f'/{TOKEN}', methods=['POST'])
 def webhook():
-    # Истифодаи threadsafe барои коркарди дурусти паёмҳо
-    asyncio.run_coroutine_threadsafe(
-        app_bot.update_queue.put(Update.de_json(request.get_json(force=True), app_bot.bot)),
-        loop
-    )
+    update = Update.de_json(request.get_json(force=True), app_bot.bot)
+    app_bot.update_queue.put(update)
     return "ok"
 
 if __name__ == '__main__':
-    # Webhook-ро бо истиноди дуруст танзим мекунем
-    async def set_wh():
-        bot = Bot(TOKEN)
-        await bot.set_webhook(url="https://telegram-bot-9thf.onrender.com/webhook")
-    
-    loop.run_until_complete(set_wh())
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
+    # URL-и худро дар Render дар ин ҷо навис (ҳамон суроғае, ки дар болои саҳифаи Render мебинед)
+    bot = Bot(TOKEN)
+    bot.set_webhook(url=f"https://YOUR-RENDER-APP-NAME.onrender.com/{TOKEN}")
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
