@@ -1,4 +1,5 @@
 import os
+import asyncio
 from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
@@ -41,9 +42,12 @@ async def button(update, context):
             return
         await query.edit_message_text(f"✅ Юнити {unit_num} оғоз шуд...")
         for w in words:
+            # Парчами Тоҷикистон
             word_text = f"🔤 **{w[1]}**\n🇹🇯 {w[2]}\n📝 {w[3]}"
             await context.bot.send_message(chat_id=query.message.chat_id, text=word_text, parse_mode='Markdown')
-            tts = gTTS(text=f"{w[1]}. {w[3]}", lang='en')
+            
+            # Аудио бо суръати оҳиста (slow=True)
+            tts = gTTS(text=f"{w[1]}. {w[3]}", lang='en', slow=True)
             tts.save("speech.mp3")
             await context.bot.send_audio(chat_id=query.message.chat_id, audio=open("speech.mp3", "rb"))
 
@@ -56,8 +60,11 @@ def webhook():
     app_bot.update_queue.put(update)
     return "ok"
 
-if __name__ == '__main__':
+async def setup_webhook():
     bot = Bot(TOKEN)
-    # ИН ҶО НОМИ БОТИ ХУДРО ДАР RENDER НАВИС:
-    bot.set_webhook(url=f"https://YOUR-RENDER-APP-NAME.onrender.com/{TOKEN}")
-    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
+    await bot.set_webhook(url=f"https://telegram-bot-9thf.onrender.com/{TOKEN}")
+
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(setup_webhook())
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
