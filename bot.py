@@ -1,67 +1,24 @@
 import os
-import logging
-from gtts import gTTS
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+from flask import Flask, request
+from telegram import Bot, Update
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler
 
-# Танзими логинг барои дидани хатогиҳо
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+TOKEN = "8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0"
+app = Flask(__name__)
+bot = Bot(TOKEN)
 
-# Функсия барои гирифтани калимаҳо
-def get_unit_words(book_file, unit_num):
-    words = []
-    if not os.path.exists(book_file):
-        return []
-    with open(book_file, 'r', encoding='utf-8') as file:
-        for line in file:
-            parts = line.strip().split(';')
-            if len(parts) >= 4 and parts[0].strip() == str(unit_num):
-                words.append(parts)
-    return words
+# Мо як "Application" месозем, аммо онро бо 'run_polling' не, балки бо Webhook мепайвастем
+app_bot = ApplicationBuilder().token(TOKEN).build()
+# Илова кардани Handler-ҳо (start ва button)
+# app_bot.add_handler(...) - дар ин ҷо ҳамон кодҳои худро илова кун
 
-async def start(update, context):
-    keyboard = [
-        [InlineKeyboardButton("4000 Essential English Words 1", callback_data='book1')],
-        [InlineKeyboardButton("4000 Essential English Words 2", callback_data='book2')]
-    ]
-    await update.message.reply_text("📚 Китобро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
-
-async def button(update, context):
-    query = update.callback_query
-    await query.answer()
-
-    if query.data in ['book1', 'book2']:
-        context.user_data['book'] = f"{query.data}.txt"
-        keyboard = [[InlineKeyboardButton(f"Unit {i}", callback_data=f"unit_{i}")] for i in range(1, 31)]
-        await query.edit_message_text(f"📖 Шумо {query.data} - ро интихоб кардед.\nЮнитро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
-
-    elif query.data.startswith('unit_'):
-        unit_num = query.data.split('_')[1]
-        book_file = context.user_data.get('book')
-        words = get_unit_words(book_file, unit_num)
-        
-        if not words:
-            await query.edit_message_text("❌ Дар ин юнит калима ёфт нашуд. Файли китобро тафтиш кунед.")
-            return
-
-        await query.edit_message_text(f"✅ Юнити {unit_num} бор шуд. Интизор шавед...")
-        
-        for w in words:
-            word_text = f"🔤 **{w[1]}**\n🇺🇿 {w[2]}\n📝 {w[3]}"
-            await context.bot.send_message(chat_id=query.message.chat_id, text=word_text, parse_mode='Markdown')
-            
-            # Эҷоди аудио
-            tts = gTTS(text=f"{w[1]}. {w[3]}", lang='en', slow=True)
-            tts.save("speech.mp3")
-            await context.bot.send_audio(chat_id=query.message.chat_id, audio=open("speech.mp3", "rb"))
+@app.route(f'/{TOKEN}', methods=['POST'])
+def webhook():
+    update = Update.de_json(request.get_json(force=True), app_bot.bot)
+    app_bot.update_queue.put(update)
+    return "ok"
 
 if __name__ == '__main__':
-    # Токени нави худро дар ин ҷо гузоред
-    TOKEN = "8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0"
-    
-    app_bot = ApplicationBuilder().token(TOKEN).build()
-    app_bot.add_handler(CommandHandler('start', start))
-    app_bot.add_handler(CallbackQueryHandler(button))
-    
-    print("Бот фаъол шуд...")
-    app_bot.run_polling()
+    # Webhook-ро фаъол мекунем
+    bot.set_webhook(url=f"https://NOMIN-BOTI-TUT.onrender.com/{TOKEN}")
+    app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 8080)))
