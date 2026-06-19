@@ -7,6 +7,9 @@ from gtts import gTTS
 
 TOKEN = "8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0"
 app = Flask(__name__)
+# Барои дуруст кор кардани бот дар Render
+loop = asyncio.new_event_loop()
+asyncio.set_event_loop(loop)
 app_bot = ApplicationBuilder().token(TOKEN).build()
 
 def get_unit_words(book_file, unit_num):
@@ -53,17 +56,18 @@ app_bot.add_handler(CallbackQueryHandler(button))
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    update = Update.de_json(request.get_json(force=True), app_bot.bot)
-    app_bot.update_queue.put(update)
+    # Истифодаи threadsafe барои коркарди дурусти паёмҳо
+    asyncio.run_coroutine_threadsafe(
+        app_bot.update_queue.put(Update.de_json(request.get_json(force=True), app_bot.bot)),
+        loop
+    )
     return "ok"
 
 if __name__ == '__main__':
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    
+    # Webhook-ро бо истиноди дуруст танзим мекунем
     async def set_wh():
         bot = Bot(TOKEN)
-        await bot.set_webhook(url=f"https://telegram-bot-9thf.onrender.com/webhook")
+        await bot.set_webhook(url="https://telegram-bot-9thf.onrender.com/webhook")
     
     loop.run_until_complete(set_wh())
     app.run(host='0.0.0.0', port=int(os.environ.get("PORT", 10000)))
