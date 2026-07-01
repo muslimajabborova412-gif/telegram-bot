@@ -54,11 +54,13 @@ async def unit_callback(update, context):
 
     for item in words:
         await query.message.reply_text(f"🔹 {item['word']} — {item['trans']}\n📝 Мисол: {item['ex']}")
+        # Тавлиди аудио ва фиристодан
         tts = gTTS(text=f"{item['word']}. {item['ex']}", lang='en', slow=True)
         tts.save("temp.mp3")
         with open("temp.mp3", "rb") as audio:
             await query.message.reply_voice(voice=audio)
 
+# Илова кардани Handler-ҳо
 app_bot.add_handler(CommandHandler('start', start))
 app_bot.add_handler(CallbackQueryHandler(book_callback, pattern=r'^book[12]$'))
 app_bot.add_handler(CallbackQueryHandler(unit_callback, pattern=r'^book[12]_u\d+$'))
@@ -71,8 +73,8 @@ def webhook():
     return "ok", 200
 
 if __name__ == '__main__':
-    bot = Bot(TOKEN)
+    # webhook танзим мешавад
     webhook_url = "https://telegram-bot-9thf.onrender.com/webhook"
-    loop.run_until_complete(bot.set_webhook(url=webhook_url))
+    loop.run_until_complete(app_bot.bot.set_webhook(url=webhook_url))
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
