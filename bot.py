@@ -1,23 +1,28 @@
 import os
 import asyncio
+import logging
 from flask import Flask, request
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler
 from gtts import gTTS
+
+# Танзими логинг барои дидани хатогиҳо дар Render
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 TOKEN = "8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0"
 app = Flask(__name__)
 
 # Инициализатсияи бот
 app_bot = ApplicationBuilder().token(TOKEN).build()
-loop = asyncio.new_event_loop()
-asyncio.set_event_loop(loop)
-loop.run_until_complete(app_bot.initialize())
 
 # Функсияи хондани файл
 def get_unit_data(book_file, unit_number):
     words = []
-    if not os.path.exists(book_file): return words
+    # Боварӣ ҳосил кун, ки файлҳои book1.txt ва book2.txt дар ҳамон ҷое ҳастанд, ки скрипт кор мекунад
+    if not os.path.exists(book_file): 
+        logger.error(f"Файл ёфт нашуд: {book_file}")
+        return words
     with open(book_file, "r", encoding="utf-8") as f:
         for line in f:
             parts = line.strip().split(';')
@@ -35,9 +40,9 @@ async def start(update, context):
 async def book_callback(update, context):
     query = update.callback_query
     await query.answer()
-    book = query.data
+    book = query.data # 'book1' ё 'book2'
     keyboard = [[InlineKeyboardButton(f"Юнит {i}", callback_data=f"{book}_u{i}")] for i in range(1, 31)]
-    await query.edit_message_text("Юнит-ро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
+    await query.edit_message_text(f"Юнит-ро барои {book} интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def unit_callback(update, context):
     query = update.callback_query
@@ -49,12 +54,11 @@ async def unit_callback(update, context):
     words = get_unit_data(book_file, unit_num)
     
     if not words:
-        await query.message.reply_text("Маълумот барои ин юнит ёфт нашуд.")
+        await query.message.reply_text("Маълумот барои ин юнит ёфт нашуд ё файл нодуруст аст.")
         return
 
     for item in words:
         await query.message.reply_text(f"🔹 {item['word']} — {item['trans']}\n📝 Мисол: {item['ex']}")
-        # Тавлиди аудио ва фиристодан
         tts = gTTS(text=f"{item['word']}. {item['ex']}", lang='en', slow=True)
         tts.save("temp.mp3")
         with open("temp.mp3", "rb") as audio:
@@ -69,12 +73,14 @@ app_bot.add_handler(CallbackQueryHandler(unit_callback, pattern=r'^book[12]_u\d+
 def webhook():
     json_data = request.get_json(force=True)
     update = Update.de_json(json_data, app_bot.bot)
-    loop.run_until_complete(app_bot.process_update(update))
+    asyncio.run(app_bot.process_update(update))
     return "ok", 200
 
 if __name__ == '__main__':
-    # webhook танзим мешавад
+    # Webhook танзим мешавад
+    bot = Bot(TOKEN)
     webhook_url = "https://telegram-bot-9thf.onrender.com/webhook"
-    loop.run_until_complete(app_bot.bot.set_webhook(url=webhook_url))
+    asyncio.run(bot.set_webhook(url=webhook_url))
+    
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
