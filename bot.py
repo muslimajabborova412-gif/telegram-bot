@@ -6,7 +6,7 @@ from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler
 from gtts import gTTS
 
-# Танзими логинг барои дидани хатогиҳо дар Render
+# Танзими логинг
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -19,9 +19,7 @@ app_bot = ApplicationBuilder().token(TOKEN).build()
 # Функсияи хондани файл
 def get_unit_data(book_file, unit_number):
     words = []
-    # Боварӣ ҳосил кун, ки файлҳои book1.txt ва book2.txt дар ҳамон ҷое ҳастанд, ки скрипт кор мекунад
-    if not os.path.exists(book_file): 
-        logger.error(f"Файл ёфт нашуд: {book_file}")
+    if not os.path.exists(book_file):
         return words
     with open(book_file, "r", encoding="utf-8") as f:
         for line in f:
@@ -40,9 +38,9 @@ async def start(update, context):
 async def book_callback(update, context):
     query = update.callback_query
     await query.answer()
-    book = query.data # 'book1' ё 'book2'
+    book = query.data
     keyboard = [[InlineKeyboardButton(f"Юнит {i}", callback_data=f"{book}_u{i}")] for i in range(1, 31)]
-    await query.edit_message_text(f"Юнит-ро барои {book} интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
+    await query.edit_message_text(f"Юнит-ро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def unit_callback(update, context):
     query = update.callback_query
@@ -52,9 +50,8 @@ async def unit_callback(update, context):
     unit_num = data[1]
     
     words = get_unit_data(book_file, unit_num)
-    
     if not words:
-        await query.message.reply_text("Маълумот барои ин юнит ёфт нашуд ё файл нодуруст аст.")
+        await query.message.reply_text("Маълумот ёфт нашуд.")
         return
 
     for item in words:
@@ -71,13 +68,15 @@ app_bot.add_handler(CallbackQueryHandler(unit_callback, pattern=r'^book[12]_u\d+
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    json_data = request.get_json(force=True)
+    # Ин қисм баъд аз гирифтани JSON, онро ба бот мефиристад
+    json_data = request.get_json()
     update = Update.de_json(json_data, app_bot.bot)
+    # Коркарди асинхронӣ бо истифода аз loop-и нав
     asyncio.run(app_bot.process_update(update))
     return "ok", 200
 
 if __name__ == '__main__':
-    # Webhook танзим мешавад
+    # Webhook-ро пеш аз оғози сервер танзим мекунем
     bot = Bot(TOKEN)
     webhook_url = "https://telegram-bot-9thf.onrender.com/webhook"
     asyncio.run(bot.set_webhook(url=webhook_url))
