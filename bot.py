@@ -1,32 +1,20 @@
 import os
-import asyncio
 import logging
-import threading
-from flask import Flask, request
-from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler
-from gtts import gTTS
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Танзими логинг
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 TOKEN = "8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0"
-WEBHOOK_URL = "https://telegram-bot-9thf.onrender.com/webhook"
 
-app = Flask(__name__)
-loop = asyncio.new_event_loop()
-
+# Функсияи хондани файл
 def get_unit_data(book_file, unit_number):
-    # Файлҳо бояд дар ҳамон ҷое бошанд, ки bot.py аст
-    base_path = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_path, book_file)
-    
+    # Файл бояд дар ҳамон ҷое бошад, ки bot.py аст
+    if not os.path.exists(book_file):
+        return []
     words = []
-    if not os.path.exists(file_path):
-        logger.error(f"ФАЙЛ ЁФТ НАШУД: {file_path}")
-        return words
-    
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(book_file, "r", encoding="utf-8") as f:
         for line in f:
             parts = line.strip().split(';')
             if len(parts) >= 4 and parts[0] == str(unit_number):
@@ -56,37 +44,19 @@ async def unit_callback(update, context):
     
     words = get_unit_data(book_file, unit_num)
     if not words:
-        await query.message.reply_text(f"Маълумот барои юнити {unit_num} ёфт нашуд! (Файли {book_file} -ро санҷед)")
+        await query.message.reply_text(f"Маълумот барои юнити {unit_num} ёфт нашуд.")
         return
 
     for item in words:
-        msg = f"🔹 {item['word']} — {item['trans']}\n📝 Мисол: {item['ex']}"
-        await query.message.reply_text(msg)
-        
-        # Сабти аудио
-        tts = gTTS(text=f"{item['word']}. {item['ex']}", lang='en', slow=True)
-        tts.save("temp.mp3")
-        with open("temp.mp3", "rb") as audio:
-            await query.message.reply_voice(voice=audio)
-
-# Инитиалсозии бот
-app_bot = ApplicationBuilder().token(TOKEN).build()
-app_bot.add_handler(CommandHandler('start', start))
-app_bot.add_handler(CallbackQueryHandler(book_callback, pattern=r'^book[12]$'))
-app_bot.add_handler(CallbackQueryHandler(unit_callback, pattern=r'^book[12]_u\d+$'))
-
-@app.route('/webhook', methods=['POST'])
-def webhook():
-    json_data = request.get_json()
-    if json_data:
-        update = Update.de_json(json_data, app_bot.bot)
-        asyncio.run_coroutine_threadsafe(app_bot.process_update(update), loop)
-    return "ok", 200
+        await query.message.reply_text(f"🔹 {item['word']} — {item['trans']}\n📝 Мисол: {item['ex']}")
 
 if __name__ == '__main__':
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(app_bot.initialize())
-    loop.run_until_complete(app_bot.bot.set_webhook(url=WEBHOOK_URL))
+    # Сохтани бот бо усули Polling
+    app_bot = ApplicationBuilder().token(TOKEN).build()
     
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host='0.0.0.0', port=port)
+    app_bot.add_handler(CommandHandler('start', start))
+    app_bot.add_handler(CallbackQueryHandler(book_callback, pattern=r'^book[12]$'))
+    app_bot.add_handler(CallbackQueryHandler(unit_callback, pattern=r'^book[12]_u\d+$'))
+    
+    print("Бот ба кор даромад!")
+    app_bot.run_polling()
