@@ -11,15 +11,23 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 TOKEN = "8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0"
+WEBHOOK_URL = "https://telegram-bot-9thf.onrender.com/webhook"
+
 app = Flask(__name__)
 
 # Инициализатсияи бот
 app_bot = ApplicationBuilder().token(TOKEN).build()
 
-# Функсияи хондани файл
+# Роҳи асосӣ барои ҷилавгирӣ аз 404
+@app.route('/', methods=['GET'])
+def index():
+    return "Bot is running perfectly!", 200
+
+# Функсияи хондани файл (Боварӣ ҳосил кунед, ки китобҳо дар ҳамин папка ҳастанд)
 def get_unit_data(book_file, unit_number):
     words = []
     if not os.path.exists(book_file):
+        logger.error(f"Файл ёфт нашуд: {book_file}")
         return words
     with open(book_file, "r", encoding="utf-8") as f:
         for line in f:
@@ -40,7 +48,7 @@ async def book_callback(update, context):
     await query.answer()
     book = query.data
     keyboard = [[InlineKeyboardButton(f"Юнит {i}", callback_data=f"{book}_u{i}")] for i in range(1, 31)]
-    await query.edit_message_text(f"Юнит-ро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
+    await query.edit_message_text(f"Юнит-ро барои {book} интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
 
 async def unit_callback(update, context):
     query = update.callback_query
@@ -68,18 +76,20 @@ app_bot.add_handler(CallbackQueryHandler(unit_callback, pattern=r'^book[12]_u\d+
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    # Ин қисм баъд аз гирифтани JSON, онро ба бот мефиристад
     json_data = request.get_json()
-    update = Update.de_json(json_data, app_bot.bot)
-    # Коркарди асинхронӣ бо истифода аз loop-и нав
-    asyncio.run(app_bot.process_update(update))
+    if json_data:
+        update = Update.de_json(json_data, app_bot.bot)
+        # Истифодаи run_coroutine_threadsafe барои ҳамкории дуруст бо Flask
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        loop.run_until_complete(app_bot.process_update(update))
     return "ok", 200
 
 if __name__ == '__main__':
-    # Webhook-ро пеш аз оғози сервер танзим мекунем
+    # Webhook-ро дубора танзим мекунем
     bot = Bot(TOKEN)
-    webhook_url = "https://telegram-bot-9thf.onrender.com/webhook"
-    asyncio.run(bot.set_webhook(url=webhook_url))
+    # Истифодаи loop барои гузоштани Webhook
+    asyncio.run(bot.set_webhook(url=WEBHOOK_URL))
     
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
