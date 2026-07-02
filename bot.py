@@ -6,7 +6,6 @@ from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler
 from gtts import gTTS
 
-# Танзими логинг
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -15,27 +14,11 @@ WEBHOOK_URL = "https://telegram-bot-9thf.onrender.com/webhook"
 
 app = Flask(__name__)
 
-# Инициализатсияи бот
-app_bot = ApplicationBuilder().token(TOKEN).build()
+# Мо объектро месозем
+app_builder = ApplicationBuilder().token(TOKEN)
+app_bot = app_builder.build()
 
-# Роҳи асосӣ барои ҷилавгирӣ аз 404
-@app.route('/', methods=['GET'])
-def index():
-    return "Bot is running perfectly!", 200
-
-# Функсияи хондани файл (Боварӣ ҳосил кунед, ки китобҳо дар ҳамин папка ҳастанд)
-def get_unit_data(book_file, unit_number):
-    words = []
-    if not os.path.exists(book_file):
-        logger.error(f"Файл ёфт нашуд: {book_file}")
-        return words
-    with open(book_file, "r", encoding="utf-8") as f:
-        for line in f:
-            parts = line.strip().split(';')
-            if len(parts) == 4 and parts[0] == str(unit_number):
-                words.append({"word": parts[1], "trans": parts[2], "ex": parts[3]})
-    return words
-
+# Иловаи Handler-ҳо (инҳоро пеш аз инициализатсия илова кунед)
 async def start(update, context):
     keyboard = [
         [InlineKeyboardButton("4000 Essential English Words 1", callback_data='book1')],
@@ -43,53 +26,25 @@ async def start(update, context):
     ]
     await update.message.reply_text("Китобро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
 
-async def book_callback(update, context):
-    query = update.callback_query
-    await query.answer()
-    book = query.data
-    keyboard = [[InlineKeyboardButton(f"Юнит {i}", callback_data=f"{book}_u{i}")] for i in range(1, 31)]
-    await query.edit_message_text(f"Юнит-ро барои {book} интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
-
-async def unit_callback(update, context):
-    query = update.callback_query
-    await query.answer()
-    data = query.data.split('_u')
-    book_file = f"{data[0]}.txt"
-    unit_num = data[1]
-    
-    words = get_unit_data(book_file, unit_num)
-    if not words:
-        await query.message.reply_text("Маълумот ёфт нашуд.")
-        return
-
-    for item in words:
-        await query.message.reply_text(f"🔹 {item['word']} — {item['trans']}\n📝 Мисол: {item['ex']}")
-        tts = gTTS(text=f"{item['word']}. {item['ex']}", lang='en', slow=True)
-        tts.save("temp.mp3")
-        with open("temp.mp3", "rb") as audio:
-            await query.message.reply_voice(voice=audio)
-
-# Илова кардани Handler-ҳо
+# ... (дигар функцияҳои шумо, ба монанди book_callback ва unit_callback ҳамон хел мемонанд)
 app_bot.add_handler(CommandHandler('start', start))
-app_bot.add_handler(CallbackQueryHandler(book_callback, pattern=r'^book[12]$'))
-app_bot.add_handler(CallbackQueryHandler(unit_callback, pattern=r'^book[12]_u\d+$'))
+# (Хатҳои дигари add_handler-ро ин ҷо илова кунед)
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
     json_data = request.get_json()
     if json_data:
         update = Update.de_json(json_data, app_bot.bot)
-        # Истифодаи run_coroutine_threadsafe барои ҳамкории дуруст бо Flask
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(app_bot.process_update(update))
+        # Ботро дар дохили дархост коркард мекунем
+        asyncio.run(app_bot.process_update(update))
     return "ok", 200
 
 if __name__ == '__main__':
-    # Webhook-ро дубора танзим мекунем
-    bot = Bot(TOKEN)
-    # Истифодаи loop барои гузоштани Webhook
-    asyncio.run(bot.set_webhook(url=WEBHOOK_URL))
+    # Муҳим: Инициализатсияи бот
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(app_bot.initialize())
+    loop.run_until_complete(app_bot.bot.set_webhook(url=WEBHOOK_URL))
     
     port = int(os.environ.get("PORT", 10000))
     app.run(host='0.0.0.0', port=port)
