@@ -4,16 +4,16 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
 import google.generativeai as genai
 
-# Танзими логгинг барои дидани хатогиҳо дар Render
+# Танзими логгинг
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # Гирифтани токенҳо аз Render Environment Variables
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 API_KEY = os.environ.get("GEMINI_API_KEY")
 
-# Танзими Gemini AI
+# Танзими Gemini AI (модели gemini-pro барои устуворӣ)
 genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel('gemini-1.5-flash')
+model = genai.GenerativeModel('gemini-pro')
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_text = update.message.text
