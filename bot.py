@@ -1,61 +1,38 @@
 import os
 import logging
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, CallbackQueryHandler, CommandHandler
+from telegram import Update
+from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
+import google.generativeai as genai
 
-logging.basicConfig(level=logging.INFO)
+# Танзими логгинг барои дидани хатогиҳо дар Render
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 
-TOKEN = "8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0"
+# Гирифтани токенҳо аз Render Environment Variables
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
+API_KEY = os.environ.get("GEMINI_API_KEY")
 
-def get_unit_data(book_file, unit_number):
-    if not os.path.exists(book_file):
-        return []
-    words = []
-    with open(book_file, "r", encoding="utf-8") as f:
-        for line in f:
-            parts = line.strip().split(';')
-            # Агар дар файл рақами юнит бо рақами интихобшуда рост ояд
-            if len(parts) >= 4 and parts[0] == str(unit_number):
-                words.append({"word": parts[1], "trans": parts[2], "ex": parts[3]})
-    return words
+# Танзими Gemini AI
+genai.configure(api_key=API_KEY)
+model = genai.GenerativeModel('gemini-1.5-flash')
 
-async def start(update, context):
-    keyboard = [
-        [InlineKeyboardButton("4000 Essential English Words 1", callback_data='book1')],
-        [InlineKeyboardButton("4000 Essential English Words 2", callback_data='book2')]
-    ]
-    await update.message.reply_text("Китобро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
-
-async def book_callback(update, context):
-    query = update.callback_query
-    await query.answer()
-    book = query.data
-    # Юнитҳо аз 1 то 30
-    keyboard = [[InlineKeyboardButton(f"Юнит {i}", callback_data=f"{book}_u{i}")] for i in range(1, 31)]
-    await query.edit_message_text(f"Юнит-ро интихоб кунед:", reply_markup=InlineKeyboardMarkup(keyboard))
-
-async def unit_callback(update, context):
-    query = update.callback_query
-    await query.answer()
-    # Гирифтани номи файл ва рақами юнит
-    parts = query.data.split('_u')
-    book_file = f"{parts[0]}.txt"
-    unit_num = parts[1]
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_text = update.message.text
     
-    words = get_unit_data(book_file, unit_num)
-    
-    if not words:
-        await query.message.reply_text(f"Дар ин юнит калимаҳо ёфт нашуданд. (Файли {book_file}-ро тафтиш кунед, оё дар он барои юнити {unit_num} маълумот ҳаст?)")
-        return
-
-    for item in words:
-        await query.message.reply_text(f"🔹 {item['word']} — {item['trans']}\n📝 Мисол: {item['ex']}")
+    try:
+        # Дархост ба AI
+        response = model.generate_content(user_text)
+        # Фиристодани ҷавоб
+        await update.message.reply_text(response.text)
+    except Exception as e:
+        logging.error(f"Хатогӣ дар AI: {e}")
+        await update.message.reply_text("Бубахшед, дар ҷавоб додан хатогӣ рух дод.")
 
 if __name__ == '__main__':
-    app_bot = ApplicationBuilder().token(TOKEN).build()
-    app_bot.add_handler(CommandHandler('start', start))
-    app_bot.add_handler(CallbackQueryHandler(book_callback, pattern=r'^book[12]$'))
-    app_bot.add_handler(CallbackQueryHandler(unit_callback, pattern=r'^book[12]_u\d+$'))
+    # Инициализатсияи бот
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
+    
+    # Қабул кардани ҳамаи паёмҳои матнӣ
+    app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
     
     print("Бот фаъол шуд...")
-    app_bot.run_polling()
+    app.run_polling()
