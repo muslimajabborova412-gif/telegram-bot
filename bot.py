@@ -1,39 +1,39 @@
-import os
-import logging
-from telegram import Update
-from telegram.ext import ApplicationBuilder, MessageHandler, filters, ContextTypes
-import google.generativeai as genai
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# Танзими логгинг барои дидани хатогиҳо дар Logs
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+# Луғати китобҳо
+BOOKS = {
+    "b2": {"file": "4000 Essential English words 2.pdf", "name": "Essential English Words 2"},
+    "b3": {"file": "4000 Essential English words 3.pdf", "name": "Essential English Words 3"},
+    # Илова кунед барои дигарон
+}
 
-# Гирифтани токенҳо аз Render Environment Variables
-BOT_TOKEN = os.environ.get("BOT_TOKEN")
-API_KEY = os.environ.get("GEMINI_API_KEY")
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = [
+        [InlineKeyboardButton("Китоби 2", callback_data="b2")],
+        [InlineKeyboardButton("Китоби 3", callback_data="b3")]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.message.reply_text("Китоби худро интихоб кунед:", reply_markup=reply_markup)
 
-# Танзими Gemini AI (модели навтарин)
-genai.configure(api_key=API_KEY)
-# Истифодаи gemini-1.5-flash барои ҳалли хатогии 404
-model = genai.GenerativeModel('gemini-1.5-flash')
-
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_text = update.message.text
+async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
     
-    try:
-        # Дархост ба AI
-        response = model.generate_content(user_text)
-        await update.message.reply_text(response.text)
-    except Exception as e:
-        # Лог кардани хатогӣ
-        logging.error(f"Хатогӣ дар AI: {e}")
-        # Фиристодани хатогӣ ба Telegram барои ташхис
-        await update.message.reply_text(f"Хатогӣ рух дод: {str(e)}")
+    book_id = query.data
+    book = BOOKS.get(book_id)
+    
+    if book:
+        # Ин ҷо бот PDF-ро ҳамчун документ мефиристад
+        # caption - ин матнест, ки зери файл меояд
+        await context.bot.send_document(
+            chat_id=query.message.chat_id, 
+            document=open(book['file'], 'rb'),
+            caption=f"Ин китоби '{book['name']}' аст."
+        )
 
 if __name__ == '__main__':
-    if not BOT_TOKEN or not API_KEY:
-        print("Хатогӣ: BOT_TOKEN ё GEMINI_API_KEY танзим нашудаанд!")
-    else:
-        app = ApplicationBuilder().token(BOT_TOKEN).build()
-        app.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), handle_message))
-        print("Бот фаъол шуд...")
-        app.run_polling()
+    app = ApplicationBuilder().token("8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0").build()
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(button_handler))
+    app.run_polling()
