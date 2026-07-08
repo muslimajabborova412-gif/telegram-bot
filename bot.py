@@ -1,39 +1,34 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# Луғати китобҳо
-BOOKS = {
-    "b2": {"file": "4000 Essential English words 2.pdf", "name": "Essential English Words 2"},
-    "b3": {"file": "4000 Essential English words 3.pdf", "name": "Essential English Words 3"},
-    # Илова кунед барои дигарон
-}
+# Номи файл бояд айнан ҳамин бошад
+PDF_FILE_NAME = "4000 Essential English words 2.pdf"
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    keyboard = [
-        [InlineKeyboardButton("Китоби 2", callback_data="b2")],
-        [InlineKeyboardButton("Китоби 3", callback_data="b3")]
-    ]
+    keyboard = [[InlineKeyboardButton("📥 Гирифтани китоби 2", callback_data="send_file")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("Китоби худро интихоб кунед:", reply_markup=reply_markup)
+    await update.message.reply_text("Салом! Барои гирифтани китоб тугмаро пахш кунед:", reply_markup=reply_markup)
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
-    book_id = query.data
-    book = BOOKS.get(book_id)
-    
-    if book:
-        # Ин ҷо бот PDF-ро ҳамчун документ мефиристад
-        # caption - ин матнест, ки зери файл меояд
+    if query.data == "send_file":
+        await query.message.reply_text("Файл фиристода шуда истодааст...")
+        # Фиристодани ҳамон файли PDF-е, ки шумо бор кардед
         await context.bot.send_document(
             chat_id=query.message.chat_id, 
-            document=open(book['file'], 'rb'),
-            caption=f"Ин китоби '{book['name']}' аст."
+            document=open(PDF_FILE_NAME, 'rb'),
+            caption="📚 Ин аст китоби '4000 Essential English Words 2'"
         )
 
 if __name__ == '__main__':
-    app = ApplicationBuilder().token("8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0").build()
+    # Токени боти худро ин ҷо гузоред
+    BOT_TOKEN = "8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0"
+    
+    app = ApplicationBuilder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CallbackQueryHandler(button_handler))
+    
+    print("Бот фаъол шуд...")
     app.run_polling()
