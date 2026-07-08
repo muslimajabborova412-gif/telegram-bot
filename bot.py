@@ -1,8 +1,16 @@
+import os
+import logging
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
 
-# Номи файл бояд айнан ҳамин бошад
+# Танзими логгинг барои дидани хатогиҳо
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+
+# Номи файл бояд айнан ҳамин хел дар GitHub бошад
 PDF_FILE_NAME = "4000 Essential English words 2.pdf"
+
+# Гирифтани токен аз муҳити Render
+BOT_TOKEN = os.environ.get("BOT_TOKEN")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [[InlineKeyboardButton("📥 Гирифтани китоби 2", callback_data="send_file")]]
@@ -14,21 +22,23 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
     
     if query.data == "send_file":
-        await query.message.reply_text("Файл фиристода шуда истодааст...")
-        # Фиристодани ҳамон файли PDF-е, ки шумо бор кардед
-        await context.bot.send_document(
-            chat_id=query.message.chat_id, 
-            document=open(PDF_FILE_NAME, 'rb'),
-            caption="📚 Ин аст китоби '4000 Essential English Words 2'"
-        )
+        # Санҷиши мавҷуд будани файл
+        if os.path.exists(PDF_FILE_NAME):
+            await query.message.reply_text("Файл фиристода шуда истодааст...")
+            await context.bot.send_document(
+                chat_id=query.message.chat_id, 
+                document=open(PDF_FILE_NAME, 'rb'),
+                caption="📚 Ин аст китоби '4000 Essential English Words 2'"
+            )
+        else:
+            await query.message.reply_text("Хатогӣ: Файли PDF дар сервер ёфт нашуд!")
 
 if __name__ == '__main__':
-    # Токени боти худро ин ҷо гузоред
-    BOT_TOKEN = "8201016798:AAEwG4rrqu-9o1H-wOdVzSr6WPZal_6_7N0"
-    
-    app = ApplicationBuilder().token(BOT_TOKEN).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(CallbackQueryHandler(button_handler))
-    
-    print("Бот фаъол шуд...")
-    app.run_polling()
+    if not BOT_TOKEN:
+        print("Хатогӣ: BOT_TOKEN танзим нашудааст!")
+    else:
+        app = ApplicationBuilder().token(BOT_TOKEN).build()
+        app.add_handler(CommandHandler("start", start))
+        app.add_handler(CallbackQueryHandler(button_handler))
+        print("Бот фаъол шуд...")
+        app.run_polling()
