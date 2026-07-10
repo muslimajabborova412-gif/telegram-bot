@@ -1,21 +1,25 @@
 from telegram import Update
 from telegram.ext import ContextTypes
 from config import CHANNEL_USERNAME, ADMIN_ID
-from database import add_user, get_all_users
+from database import add_user
 from keyboards import get_subscribe_keyboard, get_main_menu
 
 async def check_user_subscribed(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
     """Функсия барои санҷиши обунаи корбар ба канал"""
     user_id = update.effective_user.id
-    # Агар худи админ бошад, ҳамеша иҷозат диҳад
-    if user_id == ADMIN_ID:
+    
+    # Агар ID-и корбар ба ADMIN_ID-и сохти config.py баробар бошад, бе санҷиш гузаронад
+    if str(user_id) == str(ADMIN_ID):
         return True
+        
     try:
+        # Санҷиши статус дар канал
         member = await context.bot.get_chat_member(chat_id=CHANNEL_USERNAME, user_id=user_id)
         if member.status in ['member', 'administrator', 'creator']:
             return True
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"Хатогии санҷиши обуна: {e}")
+    
     return False
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -40,14 +44,17 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 async def button_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Вақте корбар тугмаи 'Обуна шудам'-ро пахш мекунад"""
+    """Вақте корбар тугмаи 'Обуна шудам (Санҷиш)'-ро пахш мекунад"""
     query = update.callback_query
     await query.answer()
     
     is_subscribed = await check_user_subscribed(update, context)
     
     if is_subscribed:
-        await query.message.delete()  # Паёми кӯҳнаро нест мекунад
+        try:
+            await query.message.delete()
+        except Exception:
+            pass
         await context.bot.send_message(
             chat_id=query.from_user.id,
             text="🎉 Табрик! Обунаи шумо тасдиқ шуд. Хуш омадед ба боти мо!",
@@ -73,11 +80,11 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     if text == "📚 Дарсҳо":
-        await update.message.reply_text("📖 Дарсҳои нав ба зудӣ дар ин ҷо ва ҳар рӯз автоматӣ ба шумо фиристода мешаванд!")
+        await update.message.reply_text("📖 Дарсҳои нав ба зудӣ дар ин ҷо ва ҳар рӯз автоматӣ ба Simple English фиристода мешаванд!")
     elif text == "📝 Тестҳо":
         await update.message.reply_text("📝 Тестҳои ҳаррӯза ба зудӣ сохта мешаванд!")
     elif text == "📖 Китобҳои ройгон":
-        await update.message.reply_text("📚 Китобҳои PDF-ро метавонед аз канали мо зеркашӣ кунед: @English_Books_send")
+        await update.message.reply_text(f"📚 Китобҳои PDF-ро метавонед аз канали мо зеркашӣ кунед: {CHANNEL_USERNAME}")
     elif text == "ℹ️ Дар бораи мо":
         await update.message.reply_text(
             "👤 Муаллифи лоиҳа: Шералиев Абдураҳим\n"
