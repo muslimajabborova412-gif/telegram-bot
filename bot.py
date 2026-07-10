@@ -8,8 +8,8 @@ def main():
     # 1. Сар кардани Базаи маълумот
     init_db()
     
-    # 2. Сохтани лоиҳаи Бот
-    application = Application.builder().token(BOT_TOKEN).build()
+    # 2. Сохтани лоиҳаи Бот (бе job_queue барои пешгирии хатогӣ)
+    application = Application.builder().token(BOT_TOKEN).job_queue(None).build()
     
     # 3. Пайваст кардани командаҳо ва тугмаҳо (Handlers)
     application.add_handler(CommandHandler("start", start_command))
