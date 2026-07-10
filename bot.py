@@ -1,8 +1,26 @@
+import os
+import asyncio
+from aiohttp import web
 from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, MessageHandler, filters
 from config import BOT_TOKEN
 from database import init_db
 from handlers import start_command, button_callback_handler, text_handler
 from scheduler import start_scheduler
+
+# Функсия барои фиреб додани Render (банд кардани Порт)
+async def handle_web(request):
+    return web.Response(text="Бот фаъол аст!")
+
+async def start_web_server():
+    app = web.Application()
+    app.router.add_get('/', handle_web)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    # Render худаш порстро ба таври автоматӣ медиҳад
+    port = int(os.environ.get("PORT", 10000))
+    site = web.TCPSite(runner, '0.0.0.0', port)
+    await site.start()
+    print(f"Веб-сервер дар форти {port} оғоз шуд.")
 
 def main():
     # 1. Сар кардани Базаи маълумот
@@ -19,7 +37,13 @@ def main():
     # 4. Фаъол кардани автопостинг
     start_scheduler(application)
     
-    # 5. Ба кор андохтани бот
+    # 5. Идораи кор давомдор (Асинхронӣ)
+    loop = asyncio.get_event_loop()
+    
+    # Ба кор андохтани веб-сервер барои Render
+    loop.create_task(start_web_server())
+    
+    # Ба кор андохтани бот
     print("Бот бомуваффақият фаъол шуд...")
     application.run_polling()
 
