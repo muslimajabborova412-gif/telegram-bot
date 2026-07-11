@@ -6,5 +6,4 @@ router = Router()
 
 @router.message(Command("start"))
 async def cmd_start(message: Message):
-    # Бот ба корбар чизе намегӯяд, ё метавонед як паёми оддӣ диҳед
-    await message.answer("Бот фаъол аст ва ба канал постҳоро интиқол медиҳад.")
+    await message.answer("Салом! Бот фаъол аст ва ба таври худкор ба канал постҳоро ирсол мекунад.")
