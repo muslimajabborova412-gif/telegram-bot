@@ -1,9 +1,5 @@
 from aiogram import Router
-from aiogram.filters import Command
-from aiogram.types import Message
 
 router = Router()
-
-@router.message(Command("start"))
-async def cmd_start(message: Message):
-    await message.answer("Салом! Бот фаъол аст ва ба таври худкор ба канал постҳоро ирсол мекунад.")
+# Мо ҳамаи функсияҳои cmd_start-ро пок кардем, 
+# то бот ба корбар ҷавоб надиҳад.
