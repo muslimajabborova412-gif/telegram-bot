@@ -4,16 +4,29 @@ from aiogram.filters import Command
 
 router = Router()
 
-# Ҷавоби дуруст барои тести имрӯза
-CORRECT_ANSWER = "goes"
-
-@router.message(Command("start"))
-async def cmd_start(message: Message):
-    await message.answer("Салом! Ман ёрдамчии Абдураҳим ҳастам. Ҷавоби тести имрӯзаро нависед (масалан: goes):")
+# Ин "базаи дониш"-и шумо аст. Ҳар рӯз метавонед инро нав кунед.
+TEST_DATABASE = {
+    "goes": {
+        "explanation": "Дар замони Present Simple барои шахси 3-юм (he, she, it) ба феъл -es илова мешавад. 'She goes' дуруст аст.",
+        "topic": "Present Simple"
+    },
+    "playing": {
+        "explanation": "Барои замони Continuous (ҳозира) мо 'be + verb-ing' истифода мебарем. 'He is playing' дуруст аст.",
+        "topic": "Present Continuous"
+    }
+}
 
 @router.message(F.text)
 async def check_answer(message: Message):
-    if message.text.lower() == CORRECT_ANSWER:
-        await message.answer("🎉 Офарин! Ҷавоби шумо дуруст аст!")
+    user_answer = message.text.lower()
+    
+    # Санҷиш, ки оё ҷавоб дар базаи мо ҳаст
+    if user_answer in TEST_DATABASE:
+        data = TEST_DATABASE[user_answer]
+        await message.answer(f"✅ Офарин! Ҷавоби шумо дуруст аст дар мавзӯи {data['topic']}.")
     else:
-        await message.answer(f"❌ Нодуруст. Ҷавоби дуруст '{CORRECT_ANSWER}' буд. Боз кӯшиш кунед!")
+        # Агар хато кунад, бот маълумоти пурра медиҳад
+        await message.answer("❌ Ҷавоби шумо нодуруст буд.\n\n"
+                             "📖 **Маълумоти иловагӣ барои шумо:**\n"
+                             "Мо бояд дар хотир дорем, ки ин қоидаро бояд такрор кунем. "
+                             "Лутфан, дарсро дубора хонед ва кӯшиш кунед!")
