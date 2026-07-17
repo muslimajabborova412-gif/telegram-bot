@@ -3,8 +3,7 @@ from aiogram import Bot, Dispatcher
 from handlers import router
 
 # Токени боти худро дар ин ҷо гузоред
-TOKEN = "YOUR_BOT_TOKEN_HERE"
-
+TOKEN = "201016798:AAEgvMTpYZTZ5uTQC1qtyt0mW5u_D3Tjp8Y"
 async def main():
     bot = Bot(token=TOKEN)
     dp = Dispatcher()
