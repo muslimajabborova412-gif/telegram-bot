@@ -1,18 +1,24 @@
 import asyncio
+import os
 from aiogram import Bot, Dispatcher
 from handlers import router
 
-# Токени боти худро дар ин ҷо гузоред
-TOKEN = "8201016798:AAEgvMTpYZTZ5uTQC1qtyt0mW5u_D3Tjp8Y"
+# Агар дар Render 'Environment Variable' илова карда бошӣ, аз ин ҷо мехонад
+TOKEN = os.getenv("BOT_TOKEN") 
+
 async def main():
+    if not TOKEN:
+        print("Хатогӣ: Токен ёфт нашуд!")
+        return
+        
     bot = Bot(token=TOKEN)
     dp = Dispatcher()
     
-    # Пайваст кардани роутер
     dp.include_router(router)
     
-    # Оғози бот
-    await dp.start_polling(bot)
+    print("Бот ба кор даромад...")
+    # Иловаи drop_pending_updates барои бартараф кардани ConflictError
+    await dp.start_polling(bot, drop_pending_updates=True)
 
 if __name__ == "__main__":
     asyncio.run(main())
